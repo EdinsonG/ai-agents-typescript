@@ -1,0 +1,36 @@
+{
+  "name": "ai-agents-core",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Core para creación de agentes de IA con TypeScript y Groq",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc && tsc-alias",
+    "start": "node dist/index.js",
+    "dev": "tsc && tsc-alias && node dist/index.js",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" __tests__/**/*.ts --max-warnings=0",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" __tests__/**/*.ts --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,md}\"",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "groq-sdk": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.4",
+    "@typescript-eslint/parser": "^8.59.4",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.0",
+    "tsc-alias": "^1.2.2",
+    "typescript": "6.0.3",
+    "vitest": "^4.1.6"
+  }
+}
