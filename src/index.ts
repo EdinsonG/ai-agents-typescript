@@ -13,7 +13,7 @@ async function main() {
   const poAgent = new TechnicalPOAgent(GROQ_API_KEY);
 
   const featureRequest =
-    'Necesito un módulo de login donde las credenciales se validen contra un sistema de autenticación externo.';
+    'Necesito un módulo de autenticación OAuth2 que soporte Google y GitHub, con manejo seguro de JWT y refresh tokens con expiración de 7 días.';
 
   console.log('\n🤖 El Product Owner está procesando el requerimiento en Groq (Llama 3.3)...\n');
 

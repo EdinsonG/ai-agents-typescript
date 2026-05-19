@@ -13,7 +13,7 @@ export class TechnicalPOAgent extends Agent {
   }
 
   public async generateUserStory(featureDescription: string): Promise<string> {
-    const promptMessage = `Por favor define la historia de usuario y las especificaciones técnicas para la siguiente solicitud de funcionalidad: "${featureDescription}"`;
+    const promptMessage = `Por favor define las historias de usuario y las especificaciones técnicas para la siguiente solicitud de funcionalidad: "${featureDescription}"`;
     return await this.execute(promptMessage);
   }
 }
