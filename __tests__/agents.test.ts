@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { LLMProvider } from '@/core/LLMProvider.js';
-import type { ChatMessage } from '@/types/index.js';
 import {
   AGENT_IDS,
   BackendNodeAgent,
+  createAgent,
   FrontendAngularAgent,
   FrontendReactAgent,
   TechnicalPOAgent,
   UXUIAgent,
-  createAgent,
 } from '@/agents/index.js';
+import { LLMProvider } from '@/core/LLMProvider.js';
+import type { ChatMessage } from '@/types/index.js';
 
 class MockProvider extends LLMProvider {
   public calls: ChatMessage[][] = [];

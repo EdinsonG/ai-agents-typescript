@@ -3,9 +3,9 @@ import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
 import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
 import { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
 import { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
-import { GenerateCompletionOptions, LLMProvider } from '@/core/LLMProvider.js';
+import { type GenerateCompletionOptions, LLMProvider } from '@/core/LLMProvider.js';
 import { ProductDeliveryPipeline } from '@/orchestration/pipeline.js';
-import { ChatMessage } from '@/types/index.js';
+import type { ChatMessage } from '@/types/index.js';
 
 const STORY_JSON = JSON.stringify({
   title: 'Autenticación OAuth2',
@@ -16,8 +16,18 @@ const STORY_JSON = JSON.stringify({
     securityCompliance: 'Rate-limiting y sanitización con zod',
   },
   acceptanceCriteria: [
-    { scenario: 'Login exitoso', given: 'credenciales válidas', when: 'envía formulario', then: 'recibe JWT' },
-    { scenario: 'Credenciales inválidas', given: 'password incorrecta', when: 'envía formulario', then: 'error 401' },
+    {
+      scenario: 'Login exitoso',
+      given: 'credenciales válidas',
+      when: 'envía formulario',
+      then: 'recibe JWT',
+    },
+    {
+      scenario: 'Credenciales inválidas',
+      given: 'password incorrecta',
+      when: 'envía formulario',
+      then: 'error 401',
+    },
   ],
   tasks: [
     { area: 'frontend', description: 'LoginForm con validación' },
@@ -41,8 +51,15 @@ const DESIGN_JSON = JSON.stringify({
     typographyScale: 'escala modular 1.25',
     spacingScale: 'base 8px',
   },
-  components: [{ name: 'Button', variants: ['primary', 'ghost'], states: ['default', 'hover', 'disabled'] }],
-  accessibilityChecklist: ['foco visible', 'aria-describedby', 'contraste AA', 'orden de tabulación'],
+  components: [
+    { name: 'Button', variants: ['primary', 'ghost'], states: ['default', 'hover', 'disabled'] },
+  ],
+  accessibilityChecklist: [
+    'foco visible',
+    'aria-describedby',
+    'contraste AA',
+    'orden de tabulación',
+  ],
   interfaceStates: ['default', 'hover', 'loading', 'empty', 'error'],
   successMetrics: ['task success 90%', 'SUS 80'],
   acceptanceCriteria: [
@@ -72,7 +89,15 @@ const FRONTEND_JSON = JSON.stringify({
 const API_JSON = JSON.stringify({
   summary: 'API de autenticación',
   frameworkDecision: { framework: 'nestjs', justification: 'estructura modular' },
-  endpoints: [{ method: 'POST', path: '/auth/login', purpose: 'login', authRequired: false, statusCodes: [200, 401] }],
+  endpoints: [
+    {
+      method: 'POST',
+      path: '/auth/login',
+      purpose: 'login',
+      authRequired: false,
+      statusCodes: [200, 401],
+    },
+  ],
   dataModel: [{ entity: 'User', fields: [{ name: 'email', type: 'string', indexed: true }] }],
   securityMeasures: ['rate-limiting por IP', 'bcrypt para passwords', 'rotación de refresh tokens'],
   errorHandlingStrategy: 'errores tipados dominio→HTTP',
@@ -131,7 +156,12 @@ describe('ProductDeliveryPipeline', () => {
     expect(delivery.frontend?.components[0].name).toBe('KanbanBoard');
     expect(delivery.api?.frameworkDecision.framework).toBe('nestjs');
 
-    expect(Object.keys(delivery.stageTimingsMs).sort()).toEqual(['backend', 'frontend', 'po', 'uxui']);
+    expect(Object.keys(delivery.stageTimingsMs).sort()).toEqual([
+      'backend',
+      'frontend',
+      'po',
+      'uxui',
+    ]);
   });
 
   it('el brief de frontend incluye la historia y el diseño del UX/UI', async () => {

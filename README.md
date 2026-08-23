@@ -137,7 +137,7 @@ __tests__/                    # 57 tests unitarios (proveedor mockeado)
 - **Groq SDK** — Inferencia `llama-3.3-70b-versatile` con salidas estructuradas
 - **zod 4** — Esquemas de validación y conversión a JSON Schema
 - **Vitest** — Pruebas unitarias sin red (proveedores mockeados)
-- **ESLint + Prettier** — Calidad y formateo automático
+- **Biome 2** — Linting y formateo en una sola herramienta ultrarrápida
 
 ---
 

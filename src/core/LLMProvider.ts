@@ -1,5 +1,5 @@
 import Groq from 'groq-sdk';
-import { ChatMessage, JsonSchemaResponseFormat, LLMProviderConfig } from '@/types/index.js';
+import type { ChatMessage, JsonSchemaResponseFormat, LLMProviderConfig } from '@/types/index.js';
 import { classifyProviderError, LLMProviderError } from './errors.js';
 
 export interface GenerateCompletionOptions {

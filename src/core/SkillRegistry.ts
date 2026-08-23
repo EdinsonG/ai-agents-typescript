@@ -1,4 +1,4 @@
-import { Skill } from '@/core/Skill.js';
+import type { Skill } from '@/core/Skill.js';
 
 /**
  * Registro centralizado de skills disponibles para los agentes.

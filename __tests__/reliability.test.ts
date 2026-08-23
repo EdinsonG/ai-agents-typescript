@@ -6,9 +6,9 @@ import {
   isRetryableKind,
   LLMProviderError,
 } from '@/core/errors.js';
-import { LLMProvider, ResilienceOptions } from '@/core/LLMProvider.js';
+import { LLMProvider, type ResilienceOptions } from '@/core/LLMProvider.js';
 import { estimateMessagesTokens, truncateMessages } from '@/core/tokens.js';
-import { ChatMessage } from '@/types/index.js';
+import type { ChatMessage } from '@/types/index.js';
 
 function errorWithStatus(status: number): unknown {
   return Object.assign(new Error(`HTTP ${status}`), { status });

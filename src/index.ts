@@ -1,7 +1,7 @@
 import 'dotenv/config';
-import { AGENT_IDS, AgentId, createAgent } from '@/agents/index.js';
 import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
 import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
+import { AGENT_IDS, type AgentId, createAgent } from '@/agents/index.js';
 import { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
 import { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
 import { ProductDeliveryPipeline } from '@/orchestration/index.js';
@@ -48,9 +48,11 @@ async function runPipeline(requirement: string, apiKey: string): Promise<void> {
   console.log('\n======================= PAQUETE DE ENTREGABLES =======================\n');
   console.log(JSON.stringify(delivery, null, 2));
   console.log('\n======================================================================');
-  console.log(`⏱️  Etapas: ${Object.entries(delivery.stageTimingsMs)
-    .map(([stage, ms]) => `${stage} ${ms}ms`)
-    .join(' · ')}`);
+  console.log(
+    `⏱️  Etapas: ${Object.entries(delivery.stageTimingsMs)
+      .map(([stage, ms]) => `${stage} ${ms}ms`)
+      .join(' · ')}`,
+  );
 }
 
 async function runAgent(agentId: AgentId, request: string, apiKey: string): Promise<void> {

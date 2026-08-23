@@ -1,11 +1,11 @@
-import { ApiDesign } from '@/agents/BackendNode/schema.js';
-import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
-import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
-import { FrontendImplementationPlan } from '@/agents/FrontendReact/schema.js';
-import { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
-import { UserStoryDeliverable } from '@/agents/TechnicalPO/schema.js';
-import { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
-import { DesignSpec } from '@/agents/UXUI/schema.js';
+import type { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
+import type { ApiDesign } from '@/agents/BackendNode/schema.js';
+import type { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
+import type { FrontendImplementationPlan } from '@/agents/FrontendReact/schema.js';
+import type { UserStoryDeliverable } from '@/agents/TechnicalPO/schema.js';
+import type { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
+import type { DesignSpec } from '@/agents/UXUI/schema.js';
+import type { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
 import { buildBackendBrief, buildFrontendBrief, buildUxBrief } from './briefs.js';
 
 export interface PipelineStageOptions {
@@ -99,7 +99,11 @@ export class ProductDeliveryPipeline {
     };
   }
 
-  private async runStage<T>(name: string, timings: Record<string, number>, task: () => Promise<T>): Promise<T> {
+  private async runStage<T>(
+    name: string,
+    timings: Record<string, number>,
+    task: () => Promise<T>,
+  ): Promise<T> {
     const start = Date.now();
     try {
       return await task();

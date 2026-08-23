@@ -1,15 +1,15 @@
 import { z } from 'zod';
-import { LLMProvider } from './LLMProvider.js';
-import { SkillRegistry } from './SkillRegistry.js';
-import { parseJsonLoose } from './json.js';
-import { StructuredOutputError } from './structuredOutputError.js';
-import { DEFAULT_MAX_CONTEXT_TOKENS, truncateMessages } from './tokens.js';
-import {
+import type {
   AgentConfig,
   ChatMessage,
   ExecuteOptions,
   JsonSchemaResponseFormat,
 } from '@/types/index.js';
+import { parseJsonLoose } from './json.js';
+import { LLMProvider } from './LLMProvider.js';
+import { SkillRegistry } from './SkillRegistry.js';
+import { StructuredOutputError } from './structuredOutputError.js';
+import { DEFAULT_MAX_CONTEXT_TOKENS, truncateMessages } from './tokens.js';
 
 const MAX_STRUCTURED_ATTEMPTS = 2;
 

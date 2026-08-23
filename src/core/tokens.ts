@@ -1,4 +1,4 @@
-import { ChatMessage } from '@/types/index.js';
+import type { ChatMessage } from '@/types/index.js';
 
 /** Heurística estándar: ~4 caracteres por token para texto en español/inglés. */
 const CHARS_PER_TOKEN = 4;

@@ -1,15 +1,15 @@
 import { SkillRegistry } from '@/core/SkillRegistry.js';
-import { PCI_DSS_SKILL, RICE_SKILL, WSJF_SKILL } from './productSkills.js';
-import {
-  ANGULAR_SIGNALS_SKILL,
-  CORE_WEB_VITALS_SKILL,
-  REACT_SERVER_FIRST_SKILL,
-} from './frontendSkills.js';
 import {
   HEXAGONAL_NESTJS_SKILL,
   OWASP_API_TOP10_SKILL,
   WCAG_FORMS_SKILL,
 } from './backendUxSkills.js';
+import {
+  ANGULAR_SIGNALS_SKILL,
+  CORE_WEB_VITALS_SKILL,
+  REACT_SERVER_FIRST_SKILL,
+} from './frontendSkills.js';
+import { PCI_DSS_SKILL, RICE_SKILL, WSJF_SKILL } from './productSkills.js';
 
 /**
  * Registro global de skills compartido por todos los agentes.

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { Agent } from '@/core/Agent.js';
-import { SkillRegistry } from '@/core/SkillRegistry.js';
-import { Skill } from '@/core/Skill.js';
 import { StructuredOutputError } from '@/core/errors.js';
 import { parseJsonLoose } from '@/core/json.js';
-import { GenerateCompletionOptions, LLMProvider } from '@/core/LLMProvider.js';
-import { ChatMessage, JsonSchemaResponseFormat } from '@/types/index.js';
+import { type GenerateCompletionOptions, LLMProvider } from '@/core/LLMProvider.js';
+import type { Skill } from '@/core/Skill.js';
+import { SkillRegistry } from '@/core/SkillRegistry.js';
+import type { ChatMessage, JsonSchemaResponseFormat } from '@/types/index.js';
 
 const DUMMY_SKILL: Skill = {
   id: 'test-skill',

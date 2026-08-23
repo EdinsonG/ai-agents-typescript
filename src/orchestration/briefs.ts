@@ -1,7 +1,5 @@
-import { ApiDesign } from '@/agents/BackendNode/schema.js';
-import { FrontendImplementationPlan } from '@/agents/FrontendReact/schema.js';
-import { UserStoryDeliverable } from '@/agents/TechnicalPO/schema.js';
-import { DesignSpec } from '@/agents/UXUI/schema.js';
+import type { UserStoryDeliverable } from '@/agents/TechnicalPO/schema.js';
+import type { DesignSpec } from '@/agents/UXUI/schema.js';
 
 /**
  * Serializa entregables estructurados en briefs de texto que alimentan
@@ -55,7 +53,10 @@ export function buildFrontendBrief(
       .map((color) => `${color.name} ${color.hex} (contraste ${color.contrastRatio}:1)`)
       .join('; ');
     const components = design.components
-      .map((component) => `${component.name} [variantes: ${component.variants.join(', ')}; estados: ${component.states.join(', ')}]`)
+      .map(
+        (component) =>
+          `${component.name} [variantes: ${component.variants.join(', ')}; estados: ${component.states.join(', ')}]`,
+      )
       .join('; ');
 
     sections.push(
@@ -88,6 +89,8 @@ export function buildBackendBrief(requirement: string, story: UserStoryDeliverab
     '',
     '## REQUISITOS DE SEGURIDAD Y CUMPLIMIENTO',
     story.technicalContext.securityCompliance,
-    ...(backendTasks ? ['', '## TAREAS BACKEND/DATOS DEFINIDAS POR EL PRODUCT OWNER', backendTasks] : []),
+    ...(backendTasks
+      ? ['', '## TAREAS BACKEND/DATOS DEFINIDAS POR EL PRODUCT OWNER', backendTasks]
+      : []),
   ].join('\n');
 }

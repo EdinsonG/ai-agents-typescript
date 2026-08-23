@@ -1,11 +1,11 @@
 import 'dotenv/config';
 import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
 import { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
-import { LLMJudge } from '@/evals/judge.js';
-import { EvalRunner } from '@/evals/runner.js';
-import { formatSuiteReport } from '@/evals/reporter.js';
 import { FRONTEND_REACT_CASES } from '@/evals/golden/frontendReactCases.js';
 import { TECHNICAL_PO_CASES } from '@/evals/golden/technicalPoCases.js';
+import { LLMJudge } from '@/evals/judge.js';
+import { formatSuiteReport } from '@/evals/reporter.js';
+import { EvalRunner } from '@/evals/runner.js';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY_AGENTS;
 

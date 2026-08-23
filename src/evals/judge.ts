@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { Agent } from '@/core/Agent.js';
-import { LLMProvider } from '@/core/LLMProvider.js';
-import { EvalRubricCriterion } from './types.js';
+import type { LLMProvider } from '@/core/LLMProvider.js';
+import type { EvalRubricCriterion } from './types.js';
 
 const VerdictSchema = z.object({
   verdicts: z

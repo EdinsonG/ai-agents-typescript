@@ -1,4 +1,4 @@
-import { Skill } from '@/core/Skill.js';
+import type { Skill } from '@/core/Skill.js';
 
 export const CORE_WEB_VITALS_SKILL: Skill = {
   id: 'core-web-vitals',

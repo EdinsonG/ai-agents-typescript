@@ -1,4 +1,4 @@
-import { Skill } from '@/core/Skill.js';
+import type { Skill } from '@/core/Skill.js';
 
 export const HEXAGONAL_NESTJS_SKILL: Skill = {
   id: 'hexagonal-nestjs',

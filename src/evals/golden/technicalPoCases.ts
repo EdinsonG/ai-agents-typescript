@@ -1,5 +1,5 @@
 import { containsAny } from '@/evals/contains.js';
-import { DeterministicCheck, EvalCase } from '@/evals/types.js';
+import type { DeterministicCheck, EvalCase } from '@/evals/types.js';
 
 const AUTH_INPUT =
   'Necesito un módulo de autenticación con user y password, además de soporte para OAuth2 (Google y GitHub), manejo seguro de JWT y refresh tokens, sesiones en Redis con expiración de 15 minutos, previniendo XSS, CSRF e inyección SQL.';

@@ -1,4 +1,4 @@
-import { EvalCase } from '@/evals/types.js';
+import type { EvalCase } from '@/evals/types.js';
 
 export const FRONTEND_REACT_CASES: EvalCase[] = [
   {

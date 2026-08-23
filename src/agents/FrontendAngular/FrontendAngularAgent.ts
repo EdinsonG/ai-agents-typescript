@@ -1,9 +1,9 @@
 import { Agent } from '@/core/Agent.js';
-import { LLMProvider } from '@/core/LLMProvider.js';
-import { ExecuteOptions } from '@/types/index.js';
+import type { LLMProvider } from '@/core/LLMProvider.js';
 import { skillRegistry } from '@/skills/index.js';
+import type { ExecuteOptions } from '@/types/index.js';
 import { SYSTEM_PROMPT } from './prompt.js';
-import { AngularImplementationPlan, AngularImplementationPlanSchema } from './schema.js';
+import { type AngularImplementationPlan, AngularImplementationPlanSchema } from './schema.js';
 
 export class FrontendAngularAgent extends Agent {
   constructor(apiKey: string, model = 'llama-3.3-70b-versatile', provider?: LLMProvider) {
