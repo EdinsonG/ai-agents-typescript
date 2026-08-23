@@ -1,5 +1,9 @@
 import 'dotenv/config';
 import { AGENT_IDS, AgentId, createAgent } from '@/agents/index.js';
+import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
+import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
+import { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
+import { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
 import { ProductDeliveryPipeline } from '@/orchestration/index.js';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY_AGENTS;
@@ -31,10 +35,10 @@ Ejemplos:
 
 async function runPipeline(requirement: string, apiKey: string): Promise<void> {
   const pipeline = new ProductDeliveryPipeline(
-    createAgent('po', apiKey),
-    createAgent('uxui', apiKey),
-    createAgent('react', apiKey),
-    createAgent('backend', apiKey),
+    new TechnicalPOAgent(apiKey),
+    new UXUIAgent(apiKey),
+    new FrontendReactAgent(apiKey),
+    new BackendNodeAgent(apiKey),
   );
 
   console.log('🚀 [Pipeline] PO → UX/UI → Frontend + Backend...');
