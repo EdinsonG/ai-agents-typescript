@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { AGENT_IDS, AgentId, createAgent } from '@/agents/index.js';
+import { ProductDeliveryPipeline } from '@/orchestration/index.js';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY_AGENTS;
 
@@ -14,43 +15,77 @@ const DEFAULT_REQUESTS: Record<AgentId, string> = {
   uxui: 'Rediseño del checkout de un e-commerce: actualmente 5 pasos y el 60% abandona el carrito; buscamos reducir fricción y abandono.',
 };
 
-function printUsage(): void {
-  console.log(`Uso: node dist/index.js <agente> [requerimiento]
+const PIPELINE_DEFAULT =
+  'Módulo de checkout con pago con tarjeta: carrito, datos de envío, pasarela de pago segura y confirmación por email.';
 
-Agentes disponibles: ${AGENT_IDS.join(', ')}
+function printUsage(): void {
+  console.log(`Uso: node dist/index.js <agente|pipeline> [requerimiento]
+
+Agentes disponibles: ${AGENT_IDS.join(', ')}, pipeline (PO → UX → Frontend + Backend)
 
 Ejemplos:
   node dist/index.js po
-  node dist/index.js react "Tabla de productos con filtros y paginación"`);
+  node dist/index.js react "Tabla de productos con filtros y paginación"
+  node dist/index.js pipeline "Checkout con pago con tarjeta"`);
+}
+
+async function runPipeline(requirement: string, apiKey: string): Promise<void> {
+  const pipeline = new ProductDeliveryPipeline(
+    createAgent('po', apiKey),
+    createAgent('uxui', apiKey),
+    createAgent('react', apiKey),
+    createAgent('backend', apiKey),
+  );
+
+  console.log('🚀 [Pipeline] PO → UX/UI → Frontend + Backend...');
+
+  const delivery = await pipeline.run(requirement);
+
+  console.log('\n======================= PAQUETE DE ENTREGABLES =======================\n');
+  console.log(JSON.stringify(delivery, null, 2));
+  console.log('\n======================================================================');
+  console.log(`⏱️  Etapas: ${Object.entries(delivery.stageTimingsMs)
+    .map(([stage, ms]) => `${stage} ${ms}ms`)
+    .join(' · ')}`);
+}
+
+async function runAgent(agentId: AgentId, request: string, apiKey: string): Promise<void> {
+  const agent = createAgent(agentId, apiKey);
+  console.log(`🚀 [Core] Ejecutando agente: ${agent.displayName}...`);
+
+  const response = await agent.execute(request);
+  console.log('\n======================= ENTREGABLE GENERADO =======================\n');
+  console.log(response);
+  console.log('\n==================================================================');
 }
 
 async function main() {
   const [agentArg, ...requestArgs] = process.argv.slice(2);
-  const agentId = (agentArg ?? 'po') as AgentId;
-
-  if (!AGENT_IDS.includes(agentId)) {
-    console.error(`❌ Agente desconocido: "${agentArg ?? ''}"`);
-    printUsage();
-    return;
-  }
+  const target = agentArg ?? 'po';
 
   if (!GROQ_API_KEY) {
     console.error('❌ Error: La variable de entorno GROQ_API_KEY_AGENTS no está configurada.');
     return;
   }
 
-  const request = requestArgs.join(' ').trim() || DEFAULT_REQUESTS[agentId];
-  const agent = createAgent(agentId, GROQ_API_KEY);
-
-  console.log(`🚀 [Core] Ejecutando agente: ${agent.displayName}...`);
+  const request = requestArgs.join(' ').trim();
 
   try {
-    const response = await agent.execute(request);
-    console.log('\n======================= ENTREGABLE GENERADO =======================\n');
-    console.log(response);
-    console.log('\n==================================================================');
+    if (target === 'pipeline') {
+      await runPipeline(request || PIPELINE_DEFAULT, GROQ_API_KEY);
+      return;
+    }
+
+    const agentId = target as AgentId;
+    if (!AGENT_IDS.includes(agentId)) {
+      console.error(`❌ Agente desconocido: "${target}"`);
+      printUsage();
+      return;
+    }
+
+    await runAgent(agentId, request || DEFAULT_REQUESTS[agentId], GROQ_API_KEY);
   } catch (error) {
-    console.error('❌ Error durante la ejecución del agente:', error);
+    console.error('❌ Error durante la ejecución:', error);
   }
 }
 
