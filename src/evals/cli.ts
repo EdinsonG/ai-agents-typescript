@@ -1,13 +1,30 @@
 import 'dotenv/config';
-import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
-import { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
+import { AGENT_IDS, AgentId, createAgent } from '@/agents/index.js';
+import { LLMJudge } from '@/evals/judge.js';
+import { EvalRunner } from '@/evals/runner.js';
+import { formatSuiteReport } from '@/evals/reporter.js';
+import { EvalCase } from '@/evals/types.js';
+import { BACKEND_NODE_CASES } from '@/evals/golden/backendNodeCases.js';
+import { FRONTEND_ANGULAR_CASES } from '@/evals/golden/frontendAngularCases.js';
 import { FRONTEND_REACT_CASES } from '@/evals/golden/frontendReactCases.js';
 import { TECHNICAL_PO_CASES } from '@/evals/golden/technicalPoCases.js';
-import { LLMJudge } from '@/evals/judge.js';
-import { formatSuiteReport } from '@/evals/reporter.js';
-import { EvalRunner } from '@/evals/runner.js';
+import { UXUI_CASES } from '@/evals/golden/uxuiCases.js';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY_AGENTS;
+
+interface SuiteDefinition {
+  name: string;
+  agentId: AgentId;
+  cases: EvalCase[];
+}
+
+const SUITES: SuiteDefinition[] = [
+  { name: 'Technical Product Owner', agentId: 'po', cases: TECHNICAL_PO_CASES },
+  { name: 'Frontend React Expert', agentId: 'react', cases: FRONTEND_REACT_CASES },
+  { name: 'Frontend Angular Expert', agentId: 'angular', cases: FRONTEND_ANGULAR_CASES },
+  { name: 'Backend Node Expert', agentId: 'backend', cases: BACKEND_NODE_CASES },
+  { name: 'UX/UI Design Expert', agentId: 'uxui', cases: UXUI_CASES },
+];
 
 async function main() {
   if (!GROQ_API_KEY) {
@@ -16,30 +33,28 @@ async function main() {
     return;
   }
 
-  const judge = new LLMJudge(GROQ_API_KEY);
-  const runner = new EvalRunner(judge);
+  const runner = new EvalRunner(new LLMJudge(GROQ_API_KEY));
+  const agents = new Map(AGENT_IDS.map((id) => [id, createAgent(id, GROQ_API_KEY)]));
 
-  const poAgent = new TechnicalPOAgent(GROQ_API_KEY);
-  const reactAgent = new FrontendReactAgent(GROQ_API_KEY);
+  let totalPassed = 0;
+  let totalCases = 0;
 
-  let allPassed = true;
+  for (const suite of SUITES) {
+    const agent = agents.get(suite.agentId)!;
+    const result = await runner.runSuite(suite.name, suite.cases, (testCase) =>
+      agent.execute(testCase.input, { skills: testCase.skills }),
+    );
 
-  const poSuite = await runner.runSuite('Technical Product Owner', TECHNICAL_PO_CASES, (testCase) =>
-    poAgent.generateUserStory(testCase.input, { skills: testCase.skills }),
-  );
-  console.log(formatSuiteReport(poSuite));
-  console.log();
-  allPassed &&= poSuite.passedCount === poSuite.results.length;
+    console.log(formatSuiteReport(result));
+    console.log();
 
-  const reactSuite = await runner.runSuite(
-    'Frontend React Expert',
-    FRONTEND_REACT_CASES,
-    (testCase) => reactAgent.implementFeature(testCase.input, { skills: testCase.skills }),
-  );
-  console.log(formatSuiteReport(reactSuite));
-  allPassed &&= reactSuite.passedCount === reactSuite.results.length;
+    totalPassed += result.passedCount;
+    totalCases += result.results.length;
+  }
 
-  if (!allPassed) {
+  console.log(`═══ Resumen global: ${totalPassed}/${totalCases} casos aprobados ═══`);
+
+  if (totalPassed < totalCases) {
     process.exitCode = 1;
   }
 }

@@ -101,8 +101,44 @@ npm run evals
 ```
 
 - Rúbricas con criterios verificables (ej. detecta si el agente infla estimaciones o da seguridad genérica).
+- **Las 5 suites de agentes tienen cobertura**: PO (2 casos), React, Angular, Backend y UX/UI.
 - Reporte por caso con puntuación 0-100%, veredictos por criterio y justificaciones.
 - Nuevos casos: agregar un objeto `EvalCase` en `src/evals/golden/`.
+
+---
+
+## 🔗 Orquestación multi-agente (`src/orchestration/`)
+
+`ProductDeliveryPipeline` encadena la suite completa: un requerimiento entra y sale el paquete de entregables de todos los roles.
+
+```
+requerimiento → PO (historia estructurada)
+                    ↓ brief
+              UX/UI (spec de diseño)
+                    ↓ brief            ↓ brief
+        Frontend React (plan)    Backend Node (API design)   ← en paralelo
+```
+
+Cada etapa recibe un *brief* generado a partir de los entregables estructurados previos: el frontend recibe historia + tareas + tokens/colores/estados del diseño; el backend recibe los requisitos de seguridad y tareas de datos.
+
+```ts
+const pipeline = new ProductDeliveryPipeline(poAgent, uxuiAgent, reactAgent, backendAgent);
+const delivery = await pipeline.run('Checkout con pago con tarjeta', {
+  stages: { uxui: true, frontend: true, backend: true }, // etapas opcionales
+  skills: { po: ['pci-dss'] },                            // skills por etapa
+});
+delivery.story;             // UserStoryDeliverable
+delivery.design;            // DesignSpec
+delivery.frontend;          // FrontendImplementationPlan
+delivery.api;               // ApiDesign
+delivery.stageTimingsMs;    // duración por etapa
+```
+
+Desde la terminal:
+
+```bash
+npm run dev -- pipeline "Checkout con pago con tarjeta"
+```
 
 ---
 
@@ -119,11 +155,12 @@ src/
 │   └── UXUI/
 ├── core/                     # Agent · LLMProvider · Skills · tokens · errors
 ├── skills/                   # 9 skills expertas + registro global
+├── orchestration/            # Pipeline PO → UX → Frontend/Backend + briefs
 ├── evals/                    # judge · runner · reporter · golden cases · cli
 ├── types/
-└── index.ts                  # Demo CLI multi-agente
-__tests__/                    # 57 tests unitarios (proveedor mockeado)
-.github/workflows/ci.yml      # Lint · Build · Tests (+ Evals opcionales)
+└── index.ts                  # Demo CLI multi-agente y pipeline
+__tests__/                    # 67 tests unitarios (proveedor mockeado)
+.github/workflows/ci.yml      # Biome · Build · Tests (+ Evals opcionales)
 ```
 
 **Agregar un sexto agente:** carpeta con `prompt.ts` + `schema.ts` + clase que extienda `Agent`, y una entrada en `src/agents/index.ts`.
@@ -162,11 +199,12 @@ GROQ_API_KEY_AGENTS=your_groq_api_key_here
 | Comando | Descripción |
 |---------|-------------|
 | `npm run dev -- <agente> [requerimiento]` | Compila y ejecuta un agente de la suite |
+| `npm run dev -- pipeline [requerimiento]` | Ejecuta el pipeline completo PO → UX → Frontend + Backend |
 | `npm run build` | Genera JavaScript en `dist/` |
 | `npm run start` | Ejecuta compilación existente |
 | `npm test` / `npm run test:watch` | Pruebas unitarias (sin red) |
-| `npm run evals` | Suite dorada contra Groq real (consume API) |
-| `npm run lint` / `lint:fix` / `format` | Calidad de código |
+| `npm run evals` | Suites doradas de los 5 agentes contra Groq real (consume API) |
+| `npm run lint` / `lint:fix` / `format` | Calidad de código con Biome |
 
 ---
 
@@ -175,7 +213,7 @@ GROQ_API_KEY_AGENTS=your_groq_api_key_here
 El workflow `.github/workflows/ci.yml` ejecuta en cada push/PR a `main`:
 
 1. `npm audit --audit-level=high` (bloquea vulnerabilidades altas)
-2. ESLint → Build → Tests unitarios
+2. Biome → Build → Tests unitarios
 3. **Evals opcionales**: se activan creando la variable de repositorio `RUN_EVALS=true` y el secret `GROQ_API_KEY_AGENTS`. Consumen API de Groq, por eso están detrás de un flag.
 
 ---
