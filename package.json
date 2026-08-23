@@ -8,6 +8,7 @@
     "build": "tsc && tsc-alias",
     "start": "node dist/index.js",
     "dev": "tsc && tsc-alias && node dist/index.js",
+    "evals": "tsc && tsc-alias && node dist/evals/cli.js",
     "lint": "eslint \"src/**/*.{ts,tsx}\" __tests__/**/*.ts --max-warnings=0",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" __tests__/**/*.ts --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,md}\"",
@@ -19,7 +20,8 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^17.4.2",
-    "groq-sdk": "^1.2.0"
+    "groq-sdk": "^1.2.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^25.9.0",
