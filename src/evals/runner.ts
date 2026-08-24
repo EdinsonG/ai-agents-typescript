@@ -1,5 +1,5 @@
+import type { CaseEvalResult, EvalCase, EvalExecutor, EvalSuiteResult } from '@/types/index.js';
 import type { LLMJudge } from './judge.js';
-import type { CaseEvalResult, EvalCase, EvalExecutor, EvalSuiteResult } from './types.js';
 
 const DEFAULT_THRESHOLD = 70;
 

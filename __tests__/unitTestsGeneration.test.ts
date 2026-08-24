@@ -2,9 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
 import { FrontendAngularAgent } from '@/agents/FrontendAngular/FrontendAngularAgent.js';
 import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
-import { type GenerateCompletionOptions, LLMProvider } from '@/core/LLMProvider.js';
-import type { UnitTestSuite } from '@/testing/unitTest.js';
-import type { ChatMessage } from '@/types/index.js';
+import { LLMProvider } from '@/core/LLMProvider.js';
+import type { ChatMessage, GenerateCompletionOptions, UnitTestSuite } from '@/types/index.js';
 
 const SUITE_JSON: UnitTestSuite = {
   target: 'LoginForm',

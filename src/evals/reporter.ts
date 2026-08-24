@@ -1,4 +1,4 @@
-import type { EvalSuiteResult } from './types.js';
+import type { EvalSuiteResult } from '@/types/index.js';
 
 const PASS_ICON = '✓';
 const FAIL_ICON = '✗';

@@ -187,15 +187,21 @@ src/
 │   └── UXUI/
 ├── core/                     # Agent · LLMProvider · Skills · tokens · errors
 ├── skills/                   # 9 skills expertas + registro global
-├── orchestration/            # Pipeline PO → UX → Frontend/Backend + briefs
-├── evals/                    # judge · runner · reporter · golden cases · cli
-├── types/
-└── index.ts                  # Demo CLI multi-agente y pipeline
+├── types/                     # Contratos centralizados por dominio + barrel index.ts
+├── orchestration/             # Pipeline PO → UX → Frontend/Backend + briefs
+├── evals/                     # judge · runner · reporter · golden cases · cli
+├── index.ts                   # Demo CLI multi-agente y pipeline
 __tests__/                    # 67 tests unitarios (proveedor mockeado)
 .github/workflows/ci.yml      # Biome · Build · Tests (+ Evals opcionales)
 ```
 
 **Agregar un sexto agente:** carpeta con `prompt.ts` + `schema.ts` + clase que extienda `Agent`, y una entrada en `src/agents/index.ts`.
+
+**Contratos de tipos:** todos centralizados en `src/types/` por dominio (`agent`, `llm`, `skill`, `evals`, `testing`, `deliverables`, `orchestration`) y exportados desde `src/types/index.ts`. Importa siempre desde ahí:
+
+```ts
+import type { ChatMessage, Skill, EvalCase, UserStoryDeliverable } from '@/types/index.js';
+```
 
 ---
 

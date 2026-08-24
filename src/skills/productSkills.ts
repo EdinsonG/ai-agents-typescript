@@ -1,4 +1,4 @@
-import type { Skill } from '@/core/Skill.js';
+import type { Skill } from '@/types/index.js';
 
 export const PCI_DSS_SKILL: Skill = {
   id: 'pci-dss',

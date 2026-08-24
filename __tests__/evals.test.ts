@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { type GenerateCompletionOptions, LLMProvider } from '@/core/LLMProvider.js';
+import { LLMProvider } from '@/core/LLMProvider.js';
 import { LLMJudge } from '@/evals/judge.js';
 import { formatSuiteReport } from '@/evals/reporter.js';
 import { EvalRunner } from '@/evals/runner.js';
-import type { ChatMessage, JsonSchemaResponseFormat } from '@/types/index.js';
+import type {
+  ChatMessage,
+  GenerateCompletionOptions,
+  JsonSchemaResponseFormat,
+} from '@/types/index.js';
 
 class ScriptedProvider extends LLMProvider {
   public requests: {

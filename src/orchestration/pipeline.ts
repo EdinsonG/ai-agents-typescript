@@ -1,41 +1,9 @@
 import type { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
-import type { ApiDesign } from '@/agents/BackendNode/schema.js';
 import type { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
-import type { FrontendImplementationPlan } from '@/agents/FrontendReact/schema.js';
-import type { UserStoryDeliverable } from '@/agents/TechnicalPO/schema.js';
 import type { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
-import type { DesignSpec } from '@/agents/UXUI/schema.js';
 import type { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
+import type { DeliveryPackage, PipelineOptions } from '@/types/index.js';
 import { buildBackendBrief, buildFrontendBrief, buildUxBrief } from './briefs.js';
-
-export interface PipelineStageOptions {
-  skills?: readonly string[];
-}
-
-export interface PipelineOptions {
-  /** Etapas opcionales; por defecto se ejecutan todas tras el PO */
-  stages?: {
-    uxui?: boolean;
-    frontend?: boolean;
-    backend?: boolean;
-  };
-  skills?: {
-    po?: readonly string[];
-    uxui?: readonly string[];
-    frontend?: readonly string[];
-    backend?: readonly string[];
-  };
-}
-
-export type DeliveryPackage = {
-  requirement: string;
-  story: UserStoryDeliverable;
-  design?: DesignSpec;
-  frontend?: FrontendImplementationPlan;
-  api?: ApiDesign;
-  /** Duración de cada etapa ejecutada, en ms */
-  stageTimingsMs: Record<string, number>;
-};
 
 /**
  * Orquesta la suite de agentes en un pipeline de producto:

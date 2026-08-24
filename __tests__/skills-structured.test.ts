@@ -3,10 +3,14 @@ import { z } from 'zod';
 import { Agent } from '@/core/Agent.js';
 import { StructuredOutputError } from '@/core/errors.js';
 import { parseJsonLoose } from '@/core/json.js';
-import { type GenerateCompletionOptions, LLMProvider } from '@/core/LLMProvider.js';
-import type { Skill } from '@/core/Skill.js';
+import { LLMProvider } from '@/core/LLMProvider.js';
 import { SkillRegistry } from '@/core/SkillRegistry.js';
-import type { ChatMessage, JsonSchemaResponseFormat } from '@/types/index.js';
+import type {
+  ChatMessage,
+  GenerateCompletionOptions,
+  JsonSchemaResponseFormat,
+  Skill,
+} from '@/types/index.js';
 
 const DUMMY_SKILL: Skill = {
   id: 'test-skill',

@@ -8,7 +8,7 @@ import { UXUI_CASES } from '@/evals/golden/uxuiCases.js';
 import { LLMJudge } from '@/evals/judge.js';
 import { formatSuiteReport } from '@/evals/reporter.js';
 import { EvalRunner } from '@/evals/runner.js';
-import type { EvalCase } from '@/evals/types.js';
+import type { EvalCase } from '@/types/index.js';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY_AGENTS;
 

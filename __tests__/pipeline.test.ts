@@ -3,9 +3,9 @@ import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
 import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
 import { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
 import { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
-import { type GenerateCompletionOptions, LLMProvider } from '@/core/LLMProvider.js';
+import { LLMProvider } from '@/core/LLMProvider.js';
 import { ProductDeliveryPipeline } from '@/orchestration/pipeline.js';
-import type { ChatMessage } from '@/types/index.js';
+import type { ChatMessage, GenerateCompletionOptions } from '@/types/index.js';
 
 const STORY_JSON = JSON.stringify({
   title: 'Autenticación OAuth2',

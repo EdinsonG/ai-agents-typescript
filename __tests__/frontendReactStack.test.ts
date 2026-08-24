@@ -8,9 +8,9 @@ import {
   type FrontendImplementationPlan,
   ImplementationPlanSchema,
 } from '@/agents/FrontendReact/schema.js';
-import { type GenerateCompletionOptions, LLMProvider } from '@/core/LLMProvider.js';
+import { LLMProvider } from '@/core/LLMProvider.js';
 import { skillRegistry } from '@/skills/index.js';
-import type { ChatMessage } from '@/types/index.js';
+import type { ChatMessage, GenerateCompletionOptions } from '@/types/index.js';
 
 class CapturingProvider extends LLMProvider {
   public lastSystemMessage = '';

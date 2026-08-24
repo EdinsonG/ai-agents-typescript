@@ -1,5 +1,5 @@
 import { containsAny } from '@/evals/contains.js';
-import type { EvalCase } from '@/evals/types.js';
+import type { EvalCase } from '@/types/index.js';
 
 export const FRONTEND_ANGULAR_CASES: EvalCase[] = [
   {

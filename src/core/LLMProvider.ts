@@ -1,22 +1,11 @@
 import Groq from 'groq-sdk';
-import type { ChatMessage, JsonSchemaResponseFormat, LLMProviderConfig } from '@/types/index.js';
+import type {
+  ChatMessage,
+  GenerateCompletionOptions,
+  LLMProviderConfig,
+  ResilienceOptions,
+} from '@/types/index.js';
 import { classifyProviderError, LLMProviderError } from './errors.js';
-
-export interface GenerateCompletionOptions {
-  /** Cuando se define, el proveedor fuerza una salida JSON conforme al esquema */
-  responseFormat?: JsonSchemaResponseFormat;
-}
-
-export interface ResilienceOptions {
-  /** Reintentos ante errores transitorios (429/408/5xx/red). Default: 3 */
-  maxRetries?: number;
-  /** Delay base del backoff exponencial en ms. Default: 500 */
-  baseDelayMs?: number;
-  /** Techo del delay en ms. Default: 8000 */
-  maxDelayMs?: number;
-  /** Timeout de cada intento en ms. Default: 60000 */
-  timeoutMs?: number;
-}
 
 const DEFAULTS: Required<ResilienceOptions> = {
   maxRetries: 3,

@@ -1,16 +1,5 @@
+import type { LLMErrorKind } from '@/types/index.js';
 import { StructuredOutputError } from './structuredOutputError.js';
-
-/**
- * Clasificación de errores del proveedor LLM según su causa.
- */
-export type LLMErrorKind =
-  | 'rate_limit'
-  | 'auth'
-  | 'bad_request'
-  | 'timeout'
-  | 'server'
-  | 'network'
-  | 'unknown';
 
 const RETRYABLE_KINDS: readonly LLMErrorKind[] = ['rate_limit', 'timeout', 'server', 'network'];
 

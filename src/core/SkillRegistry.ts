@@ -1,5 +1,4 @@
-import type { Skill } from '@/core/Skill.js';
-import type { ExecuteOptions } from '@/types/index.js';
+import type { ExecuteOptions, Skill } from '@/types/index.js';
 
 /**
  * Registro centralizado de skills disponibles para los agentes.

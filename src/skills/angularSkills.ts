@@ -1,4 +1,4 @@
-import type { Skill } from '@/core/Skill.js';
+import type { Skill } from '@/types/index.js';
 
 /** Skills del stack Angular. Centralizadas en el registro global compartido. */
 

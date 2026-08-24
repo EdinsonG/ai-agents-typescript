@@ -1,3 +1,7 @@
+/**
+ * Contratos del harness de evaluación: casos dorados, rúbricas y resultados.
+ */
+
 /** Criterio verificable de una rúbrica de evaluación. */
 export interface EvalRubricCriterion {
   /** Identificador estable del criterio (se usa en los veredictos) */

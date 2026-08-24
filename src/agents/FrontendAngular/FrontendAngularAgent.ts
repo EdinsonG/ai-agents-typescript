@@ -2,9 +2,8 @@ import { Agent } from '@/core/Agent.js';
 import type { LLMProvider } from '@/core/LLMProvider.js';
 import { mergeSkillOptions } from '@/core/SkillRegistry.js';
 import { skillRegistry } from '@/skills/index.js';
-import type { UnitTestSuite } from '@/testing/unitTest.js';
 import { UnitTestSuiteSchema } from '@/testing/unitTest.js';
-import type { ExecuteOptions } from '@/types/index.js';
+import type { ExecuteOptions, UnitTestSuite } from '@/types/index.js';
 import { SYSTEM_PROMPT } from './prompt.js';
 import { type AngularImplementationPlan, AngularImplementationPlanSchema } from './schema.js';
 
