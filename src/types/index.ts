@@ -9,6 +9,7 @@ export * from './agent.js';
 export * from './deliverables.js';
 export * from './evals.js';
 export * from './llm.js';
+export * from './observability.js';
 export * from './orchestration.js';
 export * from './skill.js';
 export * from './testing.js';

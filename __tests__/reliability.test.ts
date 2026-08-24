@@ -57,12 +57,18 @@ class FlakyProvider extends LLMProvider {
     super({ apiKey: 'key', model: 'mock', resilience });
   }
 
-  protected override async attemptCompletion(): Promise<string> {
+  protected override async attemptCompletion(): Promise<{
+    content: string;
+    usage: { promptTokens: number; completionTokens: number; totalTokens: number };
+  }> {
     this.calls++;
     if (this.calls <= this.failures.length) {
       throw this.failures[this.calls - 1];
     }
-    return 'OK';
+    return {
+      content: 'OK',
+      usage: { promptTokens: 1, completionTokens: 1, totalTokens: 2 },
+    };
   }
 }
 

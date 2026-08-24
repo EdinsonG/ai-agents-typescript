@@ -4,6 +4,8 @@ import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js
 import { AGENT_IDS, type AgentId, createAgent } from '@/agents/index.js';
 import { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
 import { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
+import { globalCollector } from '@/observability/collector.js';
+import { formatUsageSummary } from '@/observability/reporter.js';
 import { ProductDeliveryPipeline } from '@/orchestration/index.js';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY_AGENTS;
@@ -79,17 +81,17 @@ async function main() {
   try {
     if (target === 'pipeline') {
       await runPipeline(request || PIPELINE_DEFAULT, GROQ_API_KEY);
-      return;
+    } else {
+      const agentId = target as AgentId;
+      if (!AGENT_IDS.includes(agentId)) {
+        console.error(`❌ Agente desconocido: "${target}"`);
+        printUsage();
+        return;
+      }
+      await runAgent(agentId, request || DEFAULT_REQUESTS[agentId], GROQ_API_KEY);
     }
 
-    const agentId = target as AgentId;
-    if (!AGENT_IDS.includes(agentId)) {
-      console.error(`❌ Agente desconocido: "${target}"`);
-      printUsage();
-      return;
-    }
-
-    await runAgent(agentId, request || DEFAULT_REQUESTS[agentId], GROQ_API_KEY);
+    console.log(`\n${formatUsageSummary(globalCollector.summary())}`);
   } catch (error) {
     console.error('❌ Error durante la ejecución:', error);
   }

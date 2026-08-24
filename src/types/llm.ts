@@ -2,6 +2,8 @@
  * Contratos de la capa de inferencia LLM: configuración, resiliencia y errores.
  */
 
+import type { LLMCallRecord } from './observability.js';
+
 // Opciones de configuración para el proveedor de LLM
 export interface LLMProviderConfig {
   apiKey: string;
@@ -10,6 +12,13 @@ export interface LLMProviderConfig {
   maxTokens?: number;
   /** Política de reintentos, backoff y timeout */
   resilience?: ResilienceOptions;
+  /** Nombre del agente dueño del proveedor (habilita registro de consumo) */
+  agentName?: string;
+  /**
+   * Destino de los registros de consumo. Default: collector global
+   * cuando se define agentName. Estructurally compatible con ObservabilityCollector.
+   */
+  collector?: { record: (record: LLMCallRecord) => void };
 }
 
 export interface ResilienceOptions {

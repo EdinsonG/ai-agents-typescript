@@ -30,13 +30,15 @@ export abstract class Agent {
     this.systemPrompt = config.systemPrompt;
     this.maxContextTokens = config.maxContextTokens ?? DEFAULT_MAX_CONTEXT_TOKENS;
 
-    // Inyección del proveedor (DIP): permite sustituirlo o mockearlo en pruebas
+    // Inyección del proveedor (DIP): permite sustituirlo o mockearlo en pruebas.
+    // El nombre del agente habilita el registro de consumo en el collector global.
     this.provider =
       provider ??
       new LLMProvider({
         apiKey: config.apiKey,
         model: config.model || 'llama-3.3-70b-versatile',
         temperature: config.temperature ?? 0.2,
+        agentName: config.name,
       });
 
     this.skillRegistry = skillRegistry;
