@@ -72,7 +72,23 @@ const FRONTEND_JSON = JSON.stringify({
   analysis: ['requiere drag & drop', 'filtros client-side'],
   components: [{ name: 'KanbanBoard', kind: 'client', responsibility: 'tablero interactivo' }],
   folderStructure: 'src/features/kanban',
-  stateAndDataStrategy: { stateDecision: 'local-state', justification: 'estado efímero de UI' },
+  stateAndDataStrategy: {
+    stateDecision: 'zustand',
+    persistenceDetails: 'persist en localStorage solo para columnas favoritas; nunca tokens',
+    justification: 'estado efímero de UI con persistencia parcial',
+  },
+  formHandling: {
+    hasForms: true,
+    strategy: 'react-hook-form + zodResolver (@hookform/resolvers/zod)',
+    schemaLocation: 'src/features/kanban/schema.ts compartido cliente/servidor',
+  },
+  i18nStrategy: {
+    multilingual: true,
+    localeDetection: 'cookie',
+    details: 'next-intl con cookie NEXT_LOCALE, sin prefijo de URL; cambio vía Server Action',
+  },
+  serverCookiesUsage:
+    'Lectura de preferencias con await cookies() en layout del servidor; escritura solo en Server Actions',
   performanceNotes: ['virtualizar columnas', 'memo en tarjetas'],
   accessibilityNotes: ['teclado para mover tarjetas', 'aria-live en filtros'],
   animationNotes: 'layout animations con reduced motion',

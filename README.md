@@ -11,7 +11,7 @@ Incluye una suite de **5 agentes expertos** especializados en roles reales de de
 | Agente | Id | Métodos principales | Especialidad |
 |--------|-----|---------------------|--------------|
 | Technical Product Owner | `po` | `generateUserStory`, `generateUserStoryStructured` | Backlog, historias INVEST, Gherkin, priorización |
-| Frontend React Expert | `react` | `implementFeature(Structured)`, `generateUnitTests`, `reviewCode` | React 19, RSC/CC, Next.js 15, Tailwind v4, Motion |
+| Frontend React Expert | `react` | `implementFeature(Structured)`, `generateUnitTests`, `reviewCode` | React 19, App Router, RSC/CC, Tailwind v4, Motion · Formularios con **React Hook Form + zod** · Estado/persistencia con **Zustand** · i18n con **next-intl por cookie** (sin prefijo de URL) · Cookies servidor vía **next/headers** |
 | Frontend Angular Expert | `angular` | `implementFeature(Structured)`, `generateUnitTests`, `reviewCode` | Angular 19+, signals, standalone + OnPush, @if/@for/@defer |
 | Backend Node Expert | `backend` | `designApi(Structured)`, `generateUnitTests`, `reviewCode` | NestJS/Express, arquitectura hexagonal, OWASP API Top 10 |
 | UX/UI Design Expert | `uxui` | `designSolution(Structured)` | Design tokens, WCAG 2.2 AA, estados de UI completos |

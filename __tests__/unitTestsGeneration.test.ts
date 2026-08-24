@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
 import { FrontendAngularAgent } from '@/agents/FrontendAngular/FrontendAngularAgent.js';
 import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
-import { GenerateCompletionOptions, LLMProvider } from '@/core/LLMProvider.js';
+import { type GenerateCompletionOptions, LLMProvider } from '@/core/LLMProvider.js';
 import type { UnitTestSuite } from '@/testing/unitTest.js';
-import { ChatMessage } from '@/types/index.js';
+import type { ChatMessage } from '@/types/index.js';
 
 const SUITE_JSON: UnitTestSuite = {
   target: 'LoginForm',
@@ -24,7 +24,7 @@ const SUITE_JSON: UnitTestSuite = {
         "  it('envía credenciales válidas y muestra éxito', async () => {",
         '    // Arrange',
         '    const onSubmit = vi.fn();',
-        "    render(<LoginForm onSubmit={onSubmit} />);",
+        '    render(<LoginForm onSubmit={onSubmit} />);',
         '    // Act',
         "    await userEvent.type(screen.getByLabelText('Usuario'), 'ana');",
         "    await userEvent.type(screen.getByLabelText('Contraseña'), 'secreto');",
