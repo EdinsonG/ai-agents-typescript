@@ -4,6 +4,7 @@
   "type": "module",
   "description": "Core para creación de agentes de IA con TypeScript y Groq",
   "main": "dist/index.js",
+  "packageManager": "pnpm@11.21.0",
   "scripts": {
     "build": "tsc && tsc-alias",
     "start": "node dist/index.js",

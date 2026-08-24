@@ -19,8 +19,8 @@ Incluye una suite de **5 agentes expertos** especializados en roles reales de de
 ### Ejecutar desde la terminal
 
 ```bash
-npm run dev -- po "Requerimiento opcional; si se omite se usa uno por defecto por agente"
-npm run dev -- react
+pnpm dev -- po "Requerimiento opcional; si se omite se usa uno por defecto por agente"
+pnpm dev -- react
 ```
 
 ---
@@ -96,7 +96,7 @@ Cómo funciona:
 Harness de evals reproducible: casos dorados + juez LLM (temperatura 0, salida validada por esquema) + checks deterministas gratuitos.
 
 ```bash
-npm run evals
+pnpm evals
 # exit code ≠ 0 si algún caso queda bajo su umbral → listo para CI
 ```
 
@@ -137,7 +137,7 @@ delivery.stageTimingsMs;    // duración por etapa
 Desde la terminal:
 
 ```bash
-npm run dev -- pipeline "Checkout con pago con tarjeta"
+pnpm dev -- pipeline "Checkout con pago con tarjeta"
 ```
 
 ---
@@ -169,7 +169,8 @@ __tests__/                    # 67 tests unitarios (proveedor mockeado)
 
 ## 🛠️ Tecnologías
 
-- **Node.js** — Runtime ESM nativo (`type: module`)
+- **Node.js 20+** — Runtime ESM nativo (`type: module`)
+- **pnpm** — Gestor de paquetes rápido y eficiente en disco
 - **TypeScript 6** — Compilación estricta a `dist/` con alias `@/*`
 - **Groq SDK** — Inferencia `llama-3.3-70b-versatile` con salidas estructuradas
 - **zod 4** — Esquemas de validación y conversión a JSON Schema
@@ -180,9 +181,11 @@ __tests__/                    # 67 tests unitarios (proveedor mockeado)
 
 ## 🚀 Instalación rápida
 
+Requiere pnpm (incluido con Node vía `corepack enable pnpm`, o instálalo con `npm i -g pnpm`).
+
 ```bash
 git clone <repositorio> && cd ai-agents-typescript
-npm install
+pnpm install
 cp .env.example .env   # luego edita tu clave de Groq
 ```
 
@@ -198,13 +201,13 @@ GROQ_API_KEY_AGENTS=your_groq_api_key_here
 
 | Comando | Descripción |
 |---------|-------------|
-| `npm run dev -- <agente> [requerimiento]` | Compila y ejecuta un agente de la suite |
-| `npm run dev -- pipeline [requerimiento]` | Ejecuta el pipeline completo PO → UX → Frontend + Backend |
-| `npm run build` | Genera JavaScript en `dist/` |
-| `npm run start` | Ejecuta compilación existente |
-| `npm test` / `npm run test:watch` | Pruebas unitarias (sin red) |
-| `npm run evals` | Suites doradas de los 5 agentes contra Groq real (consume API) |
-| `npm run lint` / `lint:fix` / `format` | Calidad de código con Biome |
+| `pnpm dev -- <agente> [requerimiento]` | Compila y ejecuta un agente de la suite |
+| `pnpm dev -- pipeline [requerimiento]` | Ejecuta el pipeline completo PO → UX → Frontend + Backend |
+| `pnpm build` | Genera JavaScript en `dist/` |
+| `pnpm start` | Ejecuta compilación existente |
+| `pnpm test` / `pnpm test:watch` | Pruebas unitarias (sin red) |
+| `pnpm evals` | Suites doradas de los 5 agentes contra Groq real (consume API) |
+| `pnpm lint` / `pnpm lint:fix` / `pnpm format` | Calidad de código con Biome |
 
 ---
 
@@ -212,7 +215,7 @@ GROQ_API_KEY_AGENTS=your_groq_api_key_here
 
 El workflow `.github/workflows/ci.yml` ejecuta en cada push/PR a `main`:
 
-1. `npm audit --audit-level=high` (bloquea vulnerabilidades altas)
+1. `pnpm audit --audit-level high` (bloquea vulnerabilidades altas)
 2. Biome → Build → Tests unitarios
 3. **Evals opcionales**: se activan creando la variable de repositorio `RUN_EVALS=true` y el secret `GROQ_API_KEY_AGENTS`. Consumen API de Groq, por eso están detrás de un flag.
 
@@ -223,5 +226,5 @@ El workflow `.github/workflows/ci.yml` ejecuta en cada push/PR a `main`:
 - ✅ Prompt y lógica de cada agente separados en su carpeta
 - ✅ Preferir los métodos `*Structured` cuando el resultado lo consume otro código
 - ✅ Activar skills solo donde aporten valor (menos tokens, respuestas más enfocadas)
-- ✅ Añadir casos dorados al modificar prompts/skills y comparar con `npm run evals`
+- ✅ Añadir casos dorados al modificar prompts/skills y comparar con `pnpm evals`
 - ✅ Nunca commitear `.env`; usar `.env.example` como plantilla

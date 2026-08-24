@@ -1,5 +1,5 @@
 import { containsAny } from '@/evals/contains.js';
-import { EvalCase } from '@/evals/types.js';
+import type { EvalCase } from '@/evals/types.js';
 
 export const UXUI_CASES: EvalCase[] = [
   {

@@ -13,25 +13,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Lee la versión desde el campo packageManager de package.json
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Instalar dependencias
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Audit de dependencias (falla con vulnerabilidades high)
-        run: npm audit --audit-level=high
+        run: pnpm audit --audit-level high
 
-      - name: Lint
-        run: npm run lint
+      - name: Lint (Biome)
+        run: pnpm lint
 
       - name: Build
-        run: npm run build
+        run: pnpm build
 
       - name: Tests unitarios
-        run: npm test
+        run: pnpm test
 
   evals:
     name: Evals con Groq (opcional)
@@ -43,15 +46,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Instalar dependencias
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Ejecutar evals contra Groq
-        run: npm run evals
+        run: pnpm evals
         env:
           GROQ_API_KEY_AGENTS: ${{ secrets.GROQ_API_KEY_AGENTS }}
