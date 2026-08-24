@@ -46,3 +46,28 @@ En todo formulario especifica:
 - Contraste mínimo 4.5:1 en textos de error (no rojo claro sobre blanco); estados focus visibles (outline no suprimido).
 - Criterios WCAG aplicables declarados: 3.3.1 Error Identification, 3.3.3 Error Suggestion, 2.4.3 Focus Order, 1.3.5 Input Purpose.`,
 };
+
+export const API_ERRORS_RESILIENCE_SKILL: Skill = {
+  id: 'api-errors-resilience',
+  name: 'Errores tipados y resiliencia de API',
+  description: 'Errores de dominio mapeados a HTTP, retries con backoff, timeouts e idempotencia.',
+  instructions: `
+Errores y resiliencia obligatorios en toda API:
+- Errores tipados del dominio mapeados a códigos HTTP en UN solo filtro/handler centralizado; el cliente nunca recibe stack traces.
+- Validación en la frontera (DTO/class-validator/zod) antes de tocar el dominio; errores 400 con detalle por campo.
+- Todo cliente HTTP saliente con timeout explícito y retries con backoff exponencial + jitter para fallos transitorios; circuit breaker en integraciones críticas.
+- Idempotencia en endpoints que mutan dinero o estado: cabecera Idempotency-Key aceptada y deduplicada; webhooks deduplicados por event id.
+- Límite de tamaño de payload y timeouts en todos los endpoints.`,
+};
+
+export const DESIGN_TOKENS_STATES_SKILL: Skill = {
+  id: 'design-tokens-states',
+  name: 'Design tokens y contrato de estados',
+  description: 'Tokens verificables (contraste, escalas) y estados completos por componente.',
+  instructions: `
+Toda especificación de UI declara tokens verificables y estados completos:
+- Colores SIEMPRE con hex y ratio de contraste declarado (≥4.5:1 texto normal, ≥3:1 texto grande); nada de "azul primario" sin valor.
+- Escala tipográfica modular y espaciado en base 4/8pt; radios y sombras como tokens nombrados, no valores sueltos por pantalla.
+- Cada componente define sus variantes Y sus estados completos: default, hover, focus-visible, active, disabled, loading, vacío, error y overflow — un componente sin estados es una spec incompleta.
+- Los tokens se expresan listos para Tailwind/CSS variables compatibles con React o Angular.`,
+};

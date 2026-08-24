@@ -65,6 +65,23 @@ Packs de conocimiento experto que se inyectan **solo en la petición** que los s
 | `hexagonal-nestjs` | Puertos/adaptadores con dominio puro |
 | `owasp-api-top10` | Checklist de mitigaciones por amenaza |
 | `wcag-forms` | Formularios accesibles verificables |
+| `design-tokens-states` | Tokens con contraste verificado y estados completos por componente |
+| `react-hook-form-zod` | Formularios con react-hook-form + zodResolver, esquemas compartidos |
+| `zustand-persist` | Stores Zustand por feature con persistencia segura |
+| `next-intl-cookie` | i18n next-intl por cookie `NEXT_LOCALE`, sin prefijo de URL |
+| `next-server-cookies` | Cookies de servidor vía next/headers con opciones seguras |
+
+Las skills viven en un **registro global centralizado** compartido por todos los agentes: cualquier agente puede activar cualquier skill (ej. el agente React usa `core-web-vitals`; UX/UI y React comparten `wcag-forms`) sin duplicar definiciones.
+
+**Skills por defecto por agente** — se activan automáticamente en los métodos de implementación/pruebas/revisión (no en llamadas ligeras), para no gravar el system prompt:
+
+| Agente | Skills auto-activadas |
+|--------|----------------------|
+| Frontend React | `react-hook-form-zod`, `zustand-persist`, `next-intl-cookie`, `next-server-cookies` |
+| Frontend Angular | `angular-standalone-modern`, `angular-signals`, `angular-typed-forms` |
+| Backend Node | `hexagonal-nestjs`, `owasp-api-top10`, `api-errors-resilience` |
+| UX/UI | `wcag-forms`, `design-tokens-states` |
+| Technical PO | Sin defaults: sus skills (`wsjf`, `rice`, `pci-dss`) son situacionales y se piden explícitas |
 
 ```ts
 await po.generateUserStory(requerimiento, { skills: ['pci-dss', 'wsjf'] });

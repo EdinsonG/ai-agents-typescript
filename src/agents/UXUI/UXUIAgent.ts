@@ -1,9 +1,16 @@
 import { Agent } from '@/core/Agent.js';
 import type { LLMProvider } from '@/core/LLMProvider.js';
+import { mergeSkillOptions } from '@/core/SkillRegistry.js';
 import { skillRegistry } from '@/skills/index.js';
 import type { ExecuteOptions } from '@/types/index.js';
 import { SYSTEM_PROMPT } from './prompt.js';
 import { type DesignSpec, DesignSpecSchema } from './schema.js';
+
+/**
+ * Skills del estándar obligatorio del agente, inyectadas solo en las
+ * peticiones de diseño.
+ */
+export const DEFAULT_UXUI_SKILLS = ['wcag-forms', 'design-tokens-states'] as const;
 
 export class UXUIAgent extends Agent {
   constructor(apiKey: string, model = 'llama-3.3-70b-versatile', provider?: LLMProvider) {
@@ -36,7 +43,7 @@ export class UXUIAgent extends Agent {
       description,
     ].join('\n\n');
 
-    return this.execute(promptMessage, options);
+    return this.execute(promptMessage, mergeSkillOptions(options, [...DEFAULT_UXUI_SKILLS]));
   }
 
   /**
@@ -58,6 +65,10 @@ export class UXUIAgent extends Agent {
       description,
     ].join('\n\n');
 
-    return this.executeStructured(promptMessage, DesignSpecSchema, options);
+    return this.executeStructured(
+      promptMessage,
+      DesignSpecSchema,
+      mergeSkillOptions(options, [...DEFAULT_UXUI_SKILLS]),
+    );
   }
 }

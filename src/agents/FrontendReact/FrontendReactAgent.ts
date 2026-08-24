@@ -1,11 +1,24 @@
 import { Agent } from '@/core/Agent.js';
 import type { LLMProvider } from '@/core/LLMProvider.js';
+import { mergeSkillOptions } from '@/core/SkillRegistry.js';
 import { skillRegistry } from '@/skills/index.js';
 import type { UnitTestSuite } from '@/testing/unitTest.js';
 import { UnitTestSuiteSchema } from '@/testing/unitTest.js';
 import type { ExecuteOptions } from '@/types/index.js';
 import { SYSTEM_PROMPT } from './prompt.js';
 import { type FrontendImplementationPlan, ImplementationPlanSchema } from './schema.js';
+
+/**
+ * Skills del stack obligatorio del agente. Se activan automáticamente en los
+ * métodos de implementación, pruebas y revisión; se inyectan solo en esas
+ * peticiones para no gravar el system prompt en llamadas ligeras.
+ */
+export const DEFAULT_REACT_STACK_SKILLS = [
+  'react-hook-form-zod',
+  'zustand-persist',
+  'next-intl-cookie',
+  'next-server-cookies',
+] as const;
 
 export class FrontendReactAgent extends Agent {
   constructor(apiKey: string, model = 'llama-3.3-70b-versatile', provider?: LLMProvider) {
@@ -26,7 +39,7 @@ export class FrontendReactAgent extends Agent {
     featureDescription: string,
     options: ExecuteOptions = {},
   ): Promise<string> {
-    return this.execute(this.buildFeaturePrompt(featureDescription), options);
+    return this.execute(this.buildFeaturePrompt(featureDescription), this.withStackSkills(options));
   }
 
   /**
@@ -39,12 +52,12 @@ export class FrontendReactAgent extends Agent {
     return this.executeStructured(
       this.buildFeaturePrompt(featureDescription),
       ImplementationPlanSchema,
-      options,
+      this.withStackSkills(options),
     );
   }
 
   public async reviewCode(code: string): Promise<string> {
-    return this.execute(this.buildReviewPrompt(code));
+    return this.execute(this.buildReviewPrompt(code), this.withStackSkills());
   }
 
   /**
@@ -75,7 +88,19 @@ export class FrontendReactAgent extends Agent {
       '- Incluye los comandos exactos para ejecutar la suite.',
     ].join('\n');
 
-    return this.executeStructured(promptMessage, UnitTestSuiteSchema, options);
+    return this.executeStructured(
+      promptMessage,
+      UnitTestSuiteSchema,
+      this.withStackSkills(options),
+    );
+  }
+
+  /**
+   * Combina las skills del stack por defecto con las solicitadas por el usuario,
+   * sin duplicados. Las skills del usuario tienen prioridad de orden.
+   */
+  private withStackSkills(options: ExecuteOptions = {}): ExecuteOptions {
+    return mergeSkillOptions(options, [...DEFAULT_REACT_STACK_SKILLS]);
   }
 
   private buildFeaturePrompt(featureDescription: string): string {

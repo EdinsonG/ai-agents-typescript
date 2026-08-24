@@ -1,4 +1,5 @@
 import type { Skill } from '@/core/Skill.js';
+import type { ExecuteOptions } from '@/types/index.js';
 
 /**
  * Registro centralizado de skills disponibles para los agentes.
@@ -55,4 +56,19 @@ export class SkillRegistry {
       blocks.join('\n\n'),
     ].join('\n');
   }
+}
+
+/**
+ * Combina skills por defecto de un agente con las solicitadas por el usuario,
+ * sin duplicados. Las del usuario van primero (prioridad de orden).
+ */
+export function mergeSkillOptions(
+  options: ExecuteOptions,
+  defaults: readonly string[],
+): ExecuteOptions {
+  const userSkills = options.skills ?? [];
+  return {
+    ...options,
+    skills: [...userSkills, ...defaults.filter((id) => !userSkills.includes(id))],
+  };
 }

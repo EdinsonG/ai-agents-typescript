@@ -1,11 +1,22 @@
 import { Agent } from '@/core/Agent.js';
 import type { LLMProvider } from '@/core/LLMProvider.js';
+import { mergeSkillOptions } from '@/core/SkillRegistry.js';
 import { skillRegistry } from '@/skills/index.js';
 import type { UnitTestSuite } from '@/testing/unitTest.js';
 import { UnitTestSuiteSchema } from '@/testing/unitTest.js';
 import type { ExecuteOptions } from '@/types/index.js';
 import { SYSTEM_PROMPT } from './prompt.js';
 import { type AngularImplementationPlan, AngularImplementationPlanSchema } from './schema.js';
+
+/**
+ * Skills del stack obligatorio del agente, inyectadas solo en las peticiones
+ * de implementación, pruebas y revisión.
+ */
+export const DEFAULT_ANGULAR_STACK_SKILLS = [
+  'angular-standalone-modern',
+  'angular-signals',
+  'angular-typed-forms',
+] as const;
 
 export class FrontendAngularAgent extends Agent {
   constructor(apiKey: string, model = 'llama-3.3-70b-versatile', provider?: LLMProvider) {
@@ -26,7 +37,10 @@ export class FrontendAngularAgent extends Agent {
     featureDescription: string,
     options: ExecuteOptions = {},
   ): Promise<string> {
-    return this.execute(this.buildFeaturePrompt(featureDescription), options);
+    return this.execute(
+      this.buildFeaturePrompt(featureDescription),
+      mergeSkillOptions(options, [...DEFAULT_ANGULAR_STACK_SKILLS]),
+    );
   }
 
   /**
@@ -39,12 +53,15 @@ export class FrontendAngularAgent extends Agent {
     return this.executeStructured(
       this.buildFeaturePrompt(featureDescription),
       AngularImplementationPlanSchema,
-      options,
+      mergeSkillOptions(options, [...DEFAULT_ANGULAR_STACK_SKILLS]),
     );
   }
 
   public async reviewCode(code: string): Promise<string> {
-    return this.execute(this.buildReviewPrompt(code));
+    return this.execute(
+      this.buildReviewPrompt(code),
+      mergeSkillOptions({}, [...DEFAULT_ANGULAR_STACK_SKILLS]),
+    );
   }
 
   /**
@@ -75,7 +92,11 @@ export class FrontendAngularAgent extends Agent {
       '- Incluye los comandos exactos para ejecutar la suite.',
     ].join('\n');
 
-    return this.executeStructured(promptMessage, UnitTestSuiteSchema, options);
+    return this.executeStructured(
+      promptMessage,
+      UnitTestSuiteSchema,
+      mergeSkillOptions(options, [...DEFAULT_ANGULAR_STACK_SKILLS]),
+    );
   }
 
   private buildFeaturePrompt(featureDescription: string): string {

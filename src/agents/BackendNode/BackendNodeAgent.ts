@@ -1,11 +1,22 @@
 import { Agent } from '@/core/Agent.js';
 import type { LLMProvider } from '@/core/LLMProvider.js';
+import { mergeSkillOptions } from '@/core/SkillRegistry.js';
 import { skillRegistry } from '@/skills/index.js';
 import type { UnitTestSuite } from '@/testing/unitTest.js';
 import { UnitTestSuiteSchema } from '@/testing/unitTest.js';
 import type { ExecuteOptions } from '@/types/index.js';
 import { SYSTEM_PROMPT } from './prompt.js';
 import { type ApiDesign, ApiDesignSchema } from './schema.js';
+
+/**
+ * Skills del stack obligatorio del agente, inyectadas solo en las peticiones
+ * de diseño, pruebas y revisión.
+ */
+export const DEFAULT_BACKEND_STACK_SKILLS = [
+  'hexagonal-nestjs',
+  'owasp-api-top10',
+  'api-errors-resilience',
+] as const;
 
 export class BackendNodeAgent extends Agent {
   constructor(apiKey: string, model = 'llama-3.3-70b-versatile', provider?: LLMProvider) {
@@ -26,7 +37,10 @@ export class BackendNodeAgent extends Agent {
     requirementDescription: string,
     options: ExecuteOptions = {},
   ): Promise<string> {
-    return this.execute(this.buildApiPrompt(requirementDescription), options);
+    return this.execute(
+      this.buildApiPrompt(requirementDescription),
+      mergeSkillOptions(options, [...DEFAULT_BACKEND_STACK_SKILLS]),
+    );
   }
 
   /**
@@ -39,12 +53,15 @@ export class BackendNodeAgent extends Agent {
     return this.executeStructured(
       this.buildApiPrompt(requirementDescription),
       ApiDesignSchema,
-      options,
+      mergeSkillOptions(options, [...DEFAULT_BACKEND_STACK_SKILLS]),
     );
   }
 
   public async reviewCode(code: string): Promise<string> {
-    return this.execute(this.buildReviewPrompt(code));
+    return this.execute(
+      this.buildReviewPrompt(code),
+      mergeSkillOptions({}, [...DEFAULT_BACKEND_STACK_SKILLS]),
+    );
   }
 
   /**
@@ -76,7 +93,11 @@ export class BackendNodeAgent extends Agent {
       '- Incluye los comandos exactos para ejecutar la suite.',
     ].join('\n');
 
-    return this.executeStructured(promptMessage, UnitTestSuiteSchema, options);
+    return this.executeStructured(
+      promptMessage,
+      UnitTestSuiteSchema,
+      mergeSkillOptions(options, [...DEFAULT_BACKEND_STACK_SKILLS]),
+    );
   }
 
   private buildApiPrompt(requirementDescription: string): string {
