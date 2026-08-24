@@ -6,6 +6,7 @@
  */
 
 export * from './agent.js';
+export * from './critique.js';
 export * from './deliverables.js';
 export * from './evals.js';
 export * from './llm.js';

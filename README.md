@@ -123,6 +123,29 @@ Stack por especialidad: React (Vitest + Testing Library), Angular (Vitest/Jest +
 
 ---
 
+## 🔁 Autocrítica opt-in (`src/critique/`)
+
+`CritiqueRunner` reutiliza el `LLMJudge` para el bucle **generar → juzgar → revisar**: genera con el agente, puntúa la salida contra tu rúbrica y, si queda bajo el umbral (default 80%), pide una revisión con el feedback de los veredictos. Devuelve siempre la mejor de las dos salidas.
+
+```ts
+const runner = new CritiqueRunner(new LLMJudge(apiKey));
+const result = await runner.run(poAgent, requerimiento, {
+  rubric: [
+    { id: 'seguridad-concreta', requirement: 'Menciona medidas accionables, no genéricas' },
+    { id: 'criterios-gherkin', requirement: '≥2 escenarios Dado/Cuando/Entonces' },
+  ],
+  threshold: 85,
+  skills: ['pci-dss'],
+});
+result.output;       // mejor versión (original o revisada)
+result.finalScore;   // puntuación final 0-100
+result.revised;      // ¿hubo revisión?
+```
+
+Costo: hasta 2 llamadas del agente + 2 del juez por ejecución — úsalo en entregables críticos.
+
+---
+
 ## 📊 Evaluación de calidad (`src/evals/`)
 
 Harness de evals reproducible: casos dorados + juez LLM (temperatura 0, salida validada por esquema) + checks deterministas gratuitos.
