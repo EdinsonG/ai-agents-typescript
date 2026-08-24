@@ -1,5 +1,6 @@
 import type { CaseEvalResult, EvalCase, EvalExecutor, EvalSuiteResult } from '@/types/index.js';
 import type { LLMJudge } from './judge.js';
+import { computeScorePercent, toVerdictList } from './scoring.js';
 
 const DEFAULT_THRESHOLD = 70;
 
@@ -19,13 +20,7 @@ export class EvalRunner {
 
     const verdicts = await this.judge.evaluate(testCase.input, output, testCase.rubric);
 
-    const scores = testCase.rubric.map((criterion) => verdicts[criterion.id]?.score ?? 0);
-    const maxScore = testCase.rubric.length * 2;
-    const scorePercent =
-      maxScore === 0
-        ? 0
-        : Math.round((scores.reduce<number>((total, score) => total + score, 0) / maxScore) * 100);
-
+    const scorePercent = computeScorePercent(testCase.rubric, verdicts);
     const threshold = testCase.threshold ?? DEFAULT_THRESHOLD;
 
     return {
@@ -33,10 +28,7 @@ export class EvalRunner {
       passed: failedChecks.length === 0 && scorePercent >= threshold,
       scorePercent,
       threshold,
-      verdicts: testCase.rubric.map((criterion) => ({
-        id: criterion.id,
-        ...(verdicts[criterion.id] ?? { score: 0 as const, reason: 'No evaluado.' }),
-      })),
+      verdicts: toVerdictList(testCase.rubric, verdicts),
       failedChecks,
       outputPreview: output.slice(0, 160),
     };
