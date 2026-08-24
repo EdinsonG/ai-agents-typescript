@@ -1,6 +1,8 @@
 import { Agent } from '@/core/Agent.js';
 import type { LLMProvider } from '@/core/LLMProvider.js';
 import { skillRegistry } from '@/skills/index.js';
+import type { UnitTestSuite } from '@/testing/unitTest.js';
+import { UnitTestSuiteSchema } from '@/testing/unitTest.js';
 import type { ExecuteOptions } from '@/types/index.js';
 import { SYSTEM_PROMPT } from './prompt.js';
 import { type FrontendImplementationPlan, ImplementationPlanSchema } from './schema.js';
@@ -43,6 +45,37 @@ export class FrontendReactAgent extends Agent {
 
   public async reviewCode(code: string): Promise<string> {
     return this.execute(this.buildReviewPrompt(code));
+  }
+
+  /**
+   * Genera pruebas unitarias completas (Vitest + React Testing Library)
+   * como entregable estructurado y validado.
+   */
+  public async generateUnitTests(
+    subjectDescription: string,
+    options: ExecuteOptions = {},
+  ): Promise<UnitTestSuite> {
+    const subject = subjectDescription.trim();
+    if (!subject) {
+      throw new Error('subjectDescription no puede estar vacío');
+    }
+
+    this.clearMemory();
+
+    const promptMessage = [
+      'Genera las pruebas unitarias completas para el siguiente objetivo (componente, hook o funcionalidad React):',
+      subject,
+      '',
+      'Requisitos obligatorios:',
+      '- Framework: Vitest con React Testing Library y jest-dom.',
+      '- Archivos de prueba completos y ejecutables, con imports correctos, mocks explícitos de red/datos y render aislado por prueba.',
+      '- Cubre camino feliz, casos borde y estados de carga/error/vacío.',
+      '- Patrón AAA y nombres de prueba descriptivos en español.',
+      '- No modifiques la implementación; si detectas un bug, marca la prueba con it.skip y documéntalo en un comentario.',
+      '- Incluye los comandos exactos para ejecutar la suite.',
+    ].join('\n');
+
+    return this.executeStructured(promptMessage, UnitTestSuiteSchema, options);
   }
 
   private buildFeaturePrompt(featureDescription: string): string {

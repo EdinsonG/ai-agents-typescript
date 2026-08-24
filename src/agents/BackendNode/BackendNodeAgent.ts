@@ -1,6 +1,8 @@
 import { Agent } from '@/core/Agent.js';
 import type { LLMProvider } from '@/core/LLMProvider.js';
 import { skillRegistry } from '@/skills/index.js';
+import type { UnitTestSuite } from '@/testing/unitTest.js';
+import { UnitTestSuiteSchema } from '@/testing/unitTest.js';
 import type { ExecuteOptions } from '@/types/index.js';
 import { SYSTEM_PROMPT } from './prompt.js';
 import { type ApiDesign, ApiDesignSchema } from './schema.js';
@@ -43,6 +45,38 @@ export class BackendNodeAgent extends Agent {
 
   public async reviewCode(code: string): Promise<string> {
     return this.execute(this.buildReviewPrompt(code));
+  }
+
+  /**
+   * Genera pruebas unitarias y de integración completas (Vitest/Jest + Supertest)
+   * como entregable estructurado y validado.
+   */
+  public async generateUnitTests(
+    subjectDescription: string,
+    options: ExecuteOptions = {},
+  ): Promise<UnitTestSuite> {
+    const subject = subjectDescription.trim();
+    if (!subject) {
+      throw new Error('subjectDescription no puede estar vacío');
+    }
+
+    this.clearMemory();
+
+    const promptMessage = [
+      'Genera las pruebas unitarias/de integración completas para el siguiente objetivo backend Node.js/TypeScript:',
+      subject,
+      '',
+      'Requisitos obligatorios:',
+      '- Framework: Vitest (o Jest); pruebas HTTP con Supertest contra una app factory (no el servidor escuchando).',
+      '- Unitarias para casos de uso/servicios de dominio con repositorios y dependencias mockeadas.',
+      '- De integración para endpoints: validar código de estado, shape del payload JSON, errores tipados y casos de autorización (401/403).',
+      '- Cubre validaciones inválidas (400), recursos inexistentes (404) y conflictos (409) además del camino feliz.',
+      '- Base de datos mockeada o efímera; nunca depender de servicios externos reales.',
+      '- No modifiques la implementación; si detectas un bug, marca la prueba con it.skip y documéntalo.',
+      '- Incluye los comandos exactos para ejecutar la suite.',
+    ].join('\n');
+
+    return this.executeStructured(promptMessage, UnitTestSuiteSchema, options);
   }
 
   private buildApiPrompt(requirementDescription: string): string {

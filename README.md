@@ -11,9 +11,9 @@ Incluye una suite de **5 agentes expertos** especializados en roles reales de de
 | Agente | Id | Métodos principales | Especialidad |
 |--------|-----|---------------------|--------------|
 | Technical Product Owner | `po` | `generateUserStory`, `generateUserStoryStructured` | Backlog, historias INVEST, Gherkin, priorización |
-| Frontend React Expert | `react` | `implementFeature(Structured)`, `reviewCode` | React 19, RSC/CC, Next.js 15, Tailwind v4, Motion |
-| Frontend Angular Expert | `angular` | `implementFeature(Structured)`, `reviewCode` | Angular 19+, signals, standalone + OnPush, @if/@for/@defer |
-| Backend Node Expert | `backend` | `designApi(Structured)`, `reviewCode` | NestJS/Express, arquitectura hexagonal, OWASP API Top 10 |
+| Frontend React Expert | `react` | `implementFeature(Structured)`, `generateUnitTests`, `reviewCode` | React 19, RSC/CC, Next.js 15, Tailwind v4, Motion |
+| Frontend Angular Expert | `angular` | `implementFeature(Structured)`, `generateUnitTests`, `reviewCode` | Angular 19+, signals, standalone + OnPush, @if/@for/@defer |
+| Backend Node Expert | `backend` | `designApi(Structured)`, `generateUnitTests`, `reviewCode` | NestJS/Express, arquitectura hexagonal, OWASP API Top 10 |
 | UX/UI Design Expert | `uxui` | `designSolution(Structured)` | Design tokens, WCAG 2.2 AA, estados de UI completos |
 
 ### Ejecutar desde la terminal
@@ -88,6 +88,21 @@ Cómo funciona:
 1. El esquema zod se convierte a JSON Schema y se solicita salida nativa `json_schema` a Groq.
 2. Si la respuesta no valida, se reintenta una vez inyectando feedback del error al modelo.
 3. Tras agotar intentos: `StructuredOutputError` con `lastRawOutput` para depurar.
+
+---
+
+## 🧪 Generación de pruebas unitarias
+
+Los agentes de **React**, **Angular** y **Backend** generan suites de pruebas completas como entregable estructurado (`UnitTestSuite`): archivos de test ejecutables, librerías requeridas, comandos para correrlos y foco de cobertura.
+
+```ts
+const suite = await reactAgent.generateUnitTests('Componente TaskCard con drag & drop');
+suite.testFiles[0].path;    // src/components/TaskCard.test.tsx
+suite.testFiles[0].code;    // código completo listo para guardar y ejecutar
+suite.runCommands;          // ['pnpm vitest run src/components/TaskCard.test.tsx']
+```
+
+Stack por especialidad: React (Vitest + Testing Library), Angular (Vitest/Jest + TestBed + HttpTestingController), Backend (Vitest/Jest + Supertest contra app factory, con casos 400/404/409).
 
 ---
 
