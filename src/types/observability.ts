@@ -2,13 +2,9 @@
  * Contratos de observabilidad: consumo de tokens, latencia y costo por llamada.
  */
 
-import type { LLMErrorKind } from './llm.js';
+import type { LLMErrorKind, TokenUsage } from './llm.js';
 
-export interface TokenUsage {
-  promptTokens: number;
-  completionTokens: number;
-  totalTokens: number;
-}
+export type { TokenUsage };
 
 /** Registro de una llamada al proveedor LLM. */
 export interface LLMCallRecord {

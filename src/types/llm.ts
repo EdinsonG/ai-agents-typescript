@@ -2,12 +2,19 @@
  * Contratos de la capa de inferencia LLM: configuración, resiliencia y errores.
  */
 
+import type { ChatMessage } from './agent.js';
 import type { LLMCallRecord } from './observability.js';
 
 // Opciones de configuración para el proveedor de LLM
 export interface LLMProviderConfig {
   apiKey: string;
   model: string;
+  /** Protocolo del adaptador. Default: 'openai-compatible' */
+  provider?: InferenceProviderKind;
+  /** Endpoint base del proveedor. Default: Groq. Ver KNOWN_BASE_URLS */
+  baseUrl?: string;
+  /** Cliente de inferencia propio (escape total: implementa InferenceClient) */
+  client?: InferenceClient;
   temperature?: number;
   maxTokens?: number;
   /** Política de reintentos, backoff y timeout */
@@ -19,6 +26,46 @@ export interface LLMProviderConfig {
    * cuando se define agentName. Estructurally compatible con ObservabilityCollector.
    */
   collector?: { record: (record: LLMCallRecord) => void };
+}
+
+/** Protocolos de inferencia soportados de fábrica. */
+export type InferenceProviderKind = 'openai-compatible' | 'anthropic';
+
+/** Uso de tokens reportado por el proveedor. */
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+/** Resultado normalizado de un intento de inferencia. */
+export interface CompletionResult {
+  content: string;
+  usage: TokenUsage;
+}
+
+/** Solicitud normalizada que todo adaptador debe traducir a su protocolo. */
+export interface InferenceRequest {
+  model: string;
+  messages: ChatMessage[];
+  temperature: number;
+  maxTokens: number;
+  /** Si el protocolo no soporta json_schema nativo, el adaptador lo traduce a prompt */
+  responseFormat?: JsonSchemaResponseFormat;
+}
+
+/**
+ * Contrato que desacopla el núcleo de cualquier SDK: implementa este
+ * interfaz para integrar cualquier proveedor de modelos.
+ */
+export interface InferenceClient {
+  complete(request: InferenceRequest): Promise<CompletionResult>;
+}
+
+/** Mensaje de chat en formato OpenAI (estándar de facto). */
+export interface OpenAIChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
 }
 
 export interface ResilienceOptions {
