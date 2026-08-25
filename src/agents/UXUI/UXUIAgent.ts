@@ -2,7 +2,7 @@ import { Agent } from '@/core/Agent.js';
 import type { LLMProvider } from '@/core/LLMProvider.js';
 import { mergeSkillOptions } from '@/core/SkillRegistry.js';
 import { skillRegistry } from '@/skills/index.js';
-import type { ExecuteOptions } from '@/types/index.js';
+import type { AgentInferenceOptions, ExecuteOptions } from '@/types/index.js';
 import { SYSTEM_PROMPT } from './prompt.js';
 import { type DesignSpec, DesignSpecSchema } from './schema.js';
 
@@ -13,7 +13,12 @@ import { type DesignSpec, DesignSpecSchema } from './schema.js';
 export const DEFAULT_UXUI_SKILLS = ['wcag-forms', 'design-tokens-states'] as const;
 
 export class UXUIAgent extends Agent {
-  constructor(apiKey: string, model = 'llama-3.3-70b-versatile', provider?: LLMProvider) {
+  constructor(
+    apiKey: string,
+    model = 'llama-3.3-70b-versatile',
+    provider?: LLMProvider,
+    inference?: AgentInferenceOptions,
+  ) {
     super(
       {
         name: 'UX/UI Design Expert',
@@ -21,6 +26,7 @@ export class UXUIAgent extends Agent {
         model,
         temperature: 0.3,
         apiKey,
+        ...inference,
       },
       provider,
       skillRegistry,

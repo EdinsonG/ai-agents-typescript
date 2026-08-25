@@ -49,6 +49,29 @@ new LLMProvider({
 - Reintenta solo errores transitorios (429/408/5xx/red); `auth` y `bad_request` fallan de inmediato.
 - Presupuesto de contexto por agente (`maxContextTokens`, default 8000): conserva el system prompt, descarta los mensajes más antiguos y nunca el último.
 
+### Cualquier proveedor de modelos
+
+El núcleo no depende de ningún SDK: la inferencia va sobre `InferenceClient`, un contrato que puedes implementar para integrar lo que quieras.
+
+```ts
+// 1. Cualquier endpoint OpenAI-compatible (Groq es el default)
+new LLMProvider({ apiKey, model: 'llama-3.3-70b-versatile' });                        // Groq
+new LLMProvider({ apiKey, model: 'gpt-4o', baseUrl: KNOWN_BASE_URLS.openai });        // OpenAI
+new LLMProvider({ apiKey, model: 'deepseek-chat', baseUrl: KNOWN_BASE_URLS.deepseek });// DeepSeek
+new LLMProvider({ apiKey: 'ollama', model: 'llama3.1', baseUrl: KNOWN_BASE_URLS.ollama }); // Local
+
+// 2. Anthropic (protocolo Messages, json_schema traducido a prompt)
+new LLMProvider({ apiKey, model: 'claude-sonnet-4-5', provider: 'anthropic' });
+
+// 3. Tu propio cliente (escape total)
+new LLMProvider({ apiKey, model: 'mi-modelo', client: miInferenceClient });
+
+// Los agentes aceptan lo mismo:
+new FrontendReactAgent(apiKey, model, undefined, { baseUrl: KNOWN_BASE_URLS.openai, provider: 'openai-compatible' });
+```
+
+`KNOWN_BASE_URLS` (src/core/clients) incluye Groq, OpenAI, DeepSeek, Together, Mistral, Ollama y Anthropic. La resiliencia, observabilidad y salidas estructuradas funcionan igual con todos.
+
 ---
 
 ## 🎓 Skills componibles (`src/skills/`)
@@ -233,7 +256,7 @@ import type { ChatMessage, Skill, EvalCase, UserStoryDeliverable } from '@/types
 - **Node.js 20+** — Runtime ESM nativo (`type: module`)
 - **pnpm** — Gestor de paquetes rápido y eficiente en disco
 - **TypeScript 6** — Compilación estricta a `dist/` con alias `@/*`
-- **Groq SDK** — Inferencia `llama-3.3-70b-versatile` con salidas estructuradas
+- **Multi-proveedor vía `fetch`** — Sin SDKs: Groq, OpenAI, DeepSeek, Together, Mistral, Ollama, Anthropic o cualquier endpoint
 - **zod 4** — Esquemas de validación y conversión a JSON Schema
 - **Vitest** — Pruebas unitarias sin red (proveedores mockeados)
 - **Biome 2** — Linting y formateo en una sola herramienta ultrarrápida

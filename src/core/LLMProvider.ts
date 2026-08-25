@@ -1,14 +1,16 @@
-import Groq from 'groq-sdk';
 import { globalCollector } from '@/observability/collector.js';
 import type {
   ChatMessage,
+  CompletionResult,
   GenerateCompletionOptions,
+  InferenceClient,
   LLMCallRecord,
   LLMErrorKind,
   LLMProviderConfig,
   ResilienceOptions,
   TokenUsage,
 } from '@/types/index.js';
+import { createInferenceClient } from './clients/index.js';
 import { classifyProviderError, LLMProviderError } from './errors.js';
 
 const DEFAULTS: Required<ResilienceOptions> = {
@@ -20,14 +22,8 @@ const DEFAULTS: Required<ResilienceOptions> = {
 
 const ZERO_USAGE: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
 
-/** Resultado interno de un intento de inferencia. */
-export interface CompletionResult {
-  content: string;
-  usage: TokenUsage;
-}
-
 export class LLMProvider {
-  private groq: Groq;
+  private client: InferenceClient;
   private model: string;
   private temperature: number;
   private maxTokens: number;
@@ -38,12 +34,17 @@ export class LLMProvider {
   constructor(config: LLMProviderConfig) {
     this.resilience = { ...DEFAULTS, ...config.resilience };
 
-    // El SDK no reintenta por su cuenta: nuestra política es la única fuente de verdad
-    this.groq = new Groq({
-      apiKey: config.apiKey,
-      timeout: this.resilience.timeoutMs,
-      maxRetries: 0,
-    });
+    // El cliente no reintenta por su cuenta: nuestra política es la única
+    // fuente de verdad. Sin client inyectado se usa el adaptador de fábrica
+    // (openai-compatible → Groq por defecto; configurable a cualquier proveedor).
+    this.client =
+      config.client ??
+      createInferenceClient({
+        provider: config.provider ?? 'openai-compatible',
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl,
+        timeoutMs: this.resilience.timeoutMs,
+      });
     this.model = config.model;
     this.temperature = config.temperature ?? 0.2;
     this.maxTokens = config.maxTokens ?? 4096;
@@ -52,7 +53,7 @@ export class LLMProvider {
   }
 
   /**
-   * Envía un historial completo de mensajes a la API de Groq.
+   * Envía un historial completo de mensajes al proveedor configurado.
    * Reintenta con backoff exponencial + jitter ante errores transitorios,
    * lanza LLMProviderError tipada cuando la causa no es recuperable
    * y registra consumo/latencia en el collector configurado.
@@ -102,23 +103,13 @@ export class LLMProvider {
     options: GenerateCompletionOptions,
   ): Promise<CompletionResult> {
     try {
-      const response = await this.groq.chat.completions.create({
+      return await this.client.complete({
         model: this.model,
-        messages: messages as any,
+        messages,
         temperature: this.temperature,
-        max_tokens: this.maxTokens,
-        ...(options.responseFormat ? { response_format: options.responseFormat } : {}),
+        maxTokens: this.maxTokens,
+        ...(options.responseFormat ? { responseFormat: options.responseFormat } : {}),
       });
-
-      const usage = response.usage;
-      return {
-        content: response.choices[0]?.message?.content || 'No response generated.',
-        usage: {
-          promptTokens: usage?.prompt_tokens ?? 0,
-          completionTokens: usage?.completion_tokens ?? 0,
-          totalTokens: usage?.total_tokens ?? 0,
-        },
-      };
     } catch (error) {
       throw classifyProviderError(error);
     }

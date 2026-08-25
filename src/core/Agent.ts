@@ -32,12 +32,16 @@ export abstract class Agent {
 
     // Inyección del proveedor (DIP): permite sustituirlo o mockearlo en pruebas.
     // El nombre del agente habilita el registro de consumo en el collector global.
+    // provider/baseUrl/client permiten apuntar a cualquier modelo de IA.
     this.provider =
       provider ??
       new LLMProvider({
         apiKey: config.apiKey,
         model: config.model || 'llama-3.3-70b-versatile',
         temperature: config.temperature ?? 0.2,
+        provider: config.provider,
+        baseUrl: config.baseUrl,
+        client: config.client,
         agentName: config.name,
       });
 

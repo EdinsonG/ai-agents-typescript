@@ -3,7 +3,7 @@ import type { LLMProvider } from '@/core/LLMProvider.js';
 import { mergeSkillOptions } from '@/core/SkillRegistry.js';
 import { skillRegistry } from '@/skills/index.js';
 import { UnitTestSuiteSchema } from '@/testing/unitTest.js';
-import type { ExecuteOptions, UnitTestSuite } from '@/types/index.js';
+import type { AgentInferenceOptions, ExecuteOptions, UnitTestSuite } from '@/types/index.js';
 import { SYSTEM_PROMPT } from './prompt.js';
 import { type FrontendImplementationPlan, ImplementationPlanSchema } from './schema.js';
 
@@ -20,7 +20,12 @@ export const DEFAULT_REACT_STACK_SKILLS = [
 ] as const;
 
 export class FrontendReactAgent extends Agent {
-  constructor(apiKey: string, model = 'llama-3.3-70b-versatile', provider?: LLMProvider) {
+  constructor(
+    apiKey: string,
+    model = 'llama-3.3-70b-versatile',
+    provider?: LLMProvider,
+    inference?: AgentInferenceOptions,
+  ) {
     super(
       {
         name: 'Frontend React Expert',
@@ -28,6 +33,7 @@ export class FrontendReactAgent extends Agent {
         model,
         temperature: 0.2,
         apiKey,
+        ...inference,
       },
       provider,
       skillRegistry,
