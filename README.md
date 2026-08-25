@@ -263,6 +263,27 @@ import type { ChatMessage, Skill, EvalCase, UserStoryDeliverable } from '@/types
 
 ---
 
+## 🌿 GitFlow y protección de ramas
+
+| Rama | Rol | Protección |
+|------|-----|------------|
+| `main` | Producción. Solo recibe PRs desde `develop` (u `hotfix/*`). Se etiqueta con `v1.x.x` | PR obligatorio (sin push directo, aplica a admin), CI `Lint · Build · Tests` requerido, sin force-push ni borrado |
+| `develop` | Integración. Trabajo diario | CI requerido en cada push, sin force-push ni borrado |
+| `feature/*` | Cortas, nacen de `develop`, vuelven a `develop` | — |
+| `hotfix/*` | Nacen de `main`, van a `main` y se retroportan a `develop` | — |
+
+```bash
+# Flujo diario
+git switch develop && git switch -c feature/mi-cambio
+git push -u origin feature/mi-cambio        # CI corre en el push
+# PR feature/mi-cambio → develop (merge cuando CI esté verde)
+
+# Liberar: PR develop → main, luego
+git tag v1.x.x && git push origin v1.x.x    # sobre main tras el merge
+```
+
+---
+
 ## 🚀 Instalación rápida
 
 Requiere pnpm (incluido con Node vía `corepack enable pnpm`, o instálalo con `npm i -g pnpm`).
