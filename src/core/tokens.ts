@@ -3,7 +3,7 @@ import type { ChatMessage } from '@/types/index.js';
 /** Heurística estándar: ~4 caracteres por token para texto en español/inglés. */
 const CHARS_PER_TOKEN = 4;
 
-export const DEFAULT_MAX_CONTEXT_TOKENS = 8_000;
+export const DEFAULT_MAX_CONTEXT_TOKENS = 32_000;
 
 export function estimateTokens(text: string): number {
   return Math.ceil(text.length / CHARS_PER_TOKEN);

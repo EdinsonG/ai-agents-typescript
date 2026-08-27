@@ -11,10 +11,14 @@ export const DEFAULT_COST_RATES: CostRates = {
   outputUsdPerMTok: 0.79,
 };
 
+/** Límite de registros en memoria para evitar memory leaks. */
+const MAX_RECORDS = 10_000;
+
 /**
  * Acumula registros de llamadas LLM y agrega métricas de consumo.
  * Los costos son estimaciones configurables: actualiza las tarifas según
  * los precios vigentes del modelo que uses.
+ * Implementa ring buffer: al superar MAX_RECORDS se eliminan los más antiguos.
  */
 export class ObservabilityCollector {
   private readonly records: LLMCallRecord[] = [];
@@ -23,6 +27,10 @@ export class ObservabilityCollector {
 
   public record(record: LLMCallRecord): void {
     this.records.push(record);
+    // Ring buffer: eliminar los más antiguos si se excede el límite
+    if (this.records.length > MAX_RECORDS) {
+      this.records.splice(0, this.records.length - MAX_RECORDS);
+    }
   }
 
   public getRecords(): readonly LLMCallRecord[] {

@@ -82,7 +82,9 @@ export class LLMProvider {
           throw providerError;
         }
 
-        const delay = computeBackoffDelay(attempt, baseDelayMs, maxDelayMs);
+        const delay = providerError.retryAfterMs
+          ? Math.min(providerError.retryAfterMs, maxDelayMs)
+          : computeBackoffDelay(attempt, baseDelayMs, maxDelayMs);
         console.warn(
           `[LLMProvider] Intento ${attempt}/${maxRetries} falló (${providerError.kind}). Reintentando en ${delay}ms...`,
         );

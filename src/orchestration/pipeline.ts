@@ -9,6 +9,7 @@ import { buildBackendBrief, buildFrontendBrief, buildUxBrief } from './briefs.js
  * Orquesta la suite de agentes en un pipeline de producto:
  * requerimiento → historia (PO) → diseño (UX/UI) → implementación (Frontend + Backend).
  * Cada etapa recibe un brief generado a partir de los entregables estructurados previos.
+ * Usa Promise.allSettled para no perder resultados parciales si una etapa falla.
  */
 export class ProductDeliveryPipeline {
   constructor(
@@ -26,6 +27,7 @@ export class ProductDeliveryPipeline {
 
     const { stages = {}, skills = {} } = options;
     const timings: Record<string, number> = {};
+    const errors: string[] = [];
 
     const story = await this.runStage('po', timings, () =>
       this.po.generateUserStoryStructured(trimmed, { skills: skills.po }),
@@ -40,7 +42,8 @@ export class ProductDeliveryPipeline {
             }),
           );
 
-    const [frontendPlan, api] = await Promise.all([
+    // Usar Promise.allSettled para no perder resultados parciales
+    const [frontendResult, backendResult] = await Promise.allSettled([
       stages.frontend === false
         ? Promise.resolve(undefined)
         : this.runStage('frontend', timings, () =>
@@ -56,6 +59,21 @@ export class ProductDeliveryPipeline {
             }),
           ),
     ]);
+
+    const frontendPlan = frontendResult.status === 'fulfilled' ? frontendResult.value : undefined;
+    const api = backendResult.status === 'fulfilled' ? backendResult.value : undefined;
+
+    if (frontendResult.status === 'rejected') {
+      errors.push(`Frontend: ${frontendResult.reason?.message ?? frontendResult.reason}`);
+    }
+    if (backendResult.status === 'rejected') {
+      errors.push(`Backend: ${backendResult.reason?.message ?? backendResult.reason}`);
+    }
+
+    // Si ambas etapas paralelas fallaron, lanzar error
+    if (frontendResult.status === 'rejected' && backendResult.status === 'rejected') {
+      throw new Error(`Pipeline falló en etapas paralelas:\n${errors.join('\n')}`);
+    }
 
     return {
       requirement: trimmed,

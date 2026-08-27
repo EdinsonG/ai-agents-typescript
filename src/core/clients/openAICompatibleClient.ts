@@ -43,7 +43,9 @@ export class OpenAICompatibleClient implements InferenceClient {
     }
 
     if (!response.ok) {
-      throw ProviderHttpError.from(response.status, await response.text());
+      // Extraer Retry-After header para 429 (rate limit)
+      const retryAfterMs = this.extractRetryAfter(response);
+      throw ProviderHttpError.from(response.status, await response.text(), retryAfterMs);
     }
 
     const data = (await response.json()) as {
@@ -71,5 +73,29 @@ export class OpenAICompatibleClient implements InferenceClient {
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(this.config.timeoutMs),
     });
+  }
+
+  /**
+   * Extrae el header Retry-After de una respuesta 429.
+   * Soporta tanto segundos (número) como HTTP-date.
+   */
+  private extractRetryAfter(response: Response): number | undefined {
+    const retryAfter = response.headers.get('retry-after');
+    if (!retryAfter) return undefined;
+
+    // Si es un número de segundos
+    const seconds = Number(retryAfter);
+    if (!Number.isNaN(seconds)) {
+      return Math.min(seconds * 1000, 60_000); // Máximo 60 segundos
+    }
+
+    // Si es una fecha HTTP-date, calcular la diferencia
+    const date = new Date(retryAfter);
+    if (!Number.isNaN(date.getTime())) {
+      const diffMs = date.getTime() - Date.now();
+      return Math.min(Math.max(diffMs, 1000), 60_000); // Entre 1s y 60s
+    }
+
+    return undefined;
   }
 }
