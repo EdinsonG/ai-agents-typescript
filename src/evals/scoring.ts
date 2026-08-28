@@ -5,17 +5,26 @@ export type VerdictsById = Record<string, { score: 0 | 1 | 2; reason: string }>;
 /**
  * Puntuación normalizada 0-100 de una salida contra una rúbrica.
  * Criterios sin veredicto puntúan 0.
+ * Soporta pesos: criterios con weight mayor tienen más influencia.
  */
 export function computeScorePercent(
   rubric: EvalRubricCriterion[],
   verdictsById: VerdictsById,
 ): number {
-  const scores = rubric.map((criterion) => verdictsById[criterion.id]?.score ?? 0);
-  const maxScore = rubric.length * 2;
-  if (maxScore === 0) return 0;
+  if (rubric.length === 0) return 0;
 
-  const total = scores.reduce<number>((sum, score) => sum + score, 0);
-  return Math.round((total / maxScore) * 100);
+  let totalWeightedScore = 0;
+  let totalWeight = 0;
+
+  for (const criterion of rubric) {
+    const weight = criterion.weight ?? 1;
+    const score = verdictsById[criterion.id]?.score ?? 0;
+    totalWeightedScore += score * weight;
+    totalWeight += 2 * weight; // max score por criterio = 2
+  }
+
+  if (totalWeight === 0) return 0;
+  return Math.round((totalWeightedScore / totalWeight) * 100);
 }
 
 /**

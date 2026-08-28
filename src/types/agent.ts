@@ -26,6 +26,8 @@ export interface AgentConfig {
   provider?: InferenceProviderKind;
   /** Endpoint base del proveedor. Ver KNOWN_BASE_URLS en core/clients */
   baseUrl?: string;
+  /** Límite de caracteres para input del usuario (previene prompt injection por longitud) */
+  maxInputLength?: number;
   /** Cliente de inferencia propio (implementa InferenceClient) */
   client?: InferenceClient;
 }

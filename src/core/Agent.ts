@@ -5,16 +5,14 @@ import type {
   ExecuteOptions,
   JsonSchemaResponseFormat,
 } from '@/types/index.js';
+import { config } from './config.js';
 import { parseJsonLoose } from './json.js';
 import { LLMProvider } from './LLMProvider.js';
 import { SkillRegistry } from './SkillRegistry.js';
 import { StructuredOutputError } from './structuredOutputError.js';
-import { DEFAULT_MAX_CONTEXT_TOKENS, truncateMessages } from './tokens.js';
+import { truncateMessages } from './tokens.js';
 
 const MAX_STRUCTURED_ATTEMPTS = 2;
-
-/** Límite de mensajes en chatHistory para evitar memory leaks. */
-const MAX_CHAT_HISTORY = 100;
 
 /** Delimitador para proteger contra prompt injection. */
 const INPUT_DELIMITER_START = '<usuario_input>';
@@ -39,27 +37,29 @@ export abstract class Agent {
   protected provider: LLMProvider;
   protected skillRegistry: SkillRegistry;
   protected maxContextTokens: number;
+  protected maxInputLength: number;
   protected chatHistory: ChatMessage[] = [];
 
   constructor(
-    config: AgentConfig,
+    agentConfig: AgentConfig,
     provider?: LLMProvider,
     skillRegistry: SkillRegistry = new SkillRegistry(),
   ) {
-    this.name = config.name;
-    this.systemPrompt = config.systemPrompt;
-    this.maxContextTokens = config.maxContextTokens ?? DEFAULT_MAX_CONTEXT_TOKENS;
+    this.name = agentConfig.name;
+    this.systemPrompt = agentConfig.systemPrompt;
+    this.maxContextTokens = agentConfig.maxContextTokens ?? config.maxContextTokens;
+    this.maxInputLength = agentConfig.maxInputLength ?? config.maxInputLength;
 
     this.provider =
       provider ??
       new LLMProvider({
-        apiKey: config.apiKey,
-        model: config.model || 'llama-3.3-70b-versatile',
-        temperature: config.temperature ?? 0.2,
-        provider: config.provider,
-        baseUrl: config.baseUrl,
-        client: config.client,
-        agentName: config.name,
+        apiKey: agentConfig.apiKey,
+        model: agentConfig.model || config.defaultModel,
+        temperature: agentConfig.temperature ?? config.defaultTemperature,
+        provider: agentConfig.provider,
+        baseUrl: agentConfig.baseUrl,
+        client: agentConfig.client,
+        agentName: agentConfig.name,
       });
 
     this.skillRegistry = skillRegistry;
@@ -71,10 +71,22 @@ export abstract class Agent {
   }
 
   /**
+   * Valida que el input no exceda el límite de caracteres.
+   */
+  protected validateInput(input: string): void {
+    if (input.length > this.maxInputLength) {
+      throw new Error(
+        `Input demasiado largo (${input.length} caracteres). Máximo permitido: ${this.maxInputLength}`,
+      );
+    }
+  }
+
+  /**
    * Método de ejecución libre (salida en texto).
    * Las skills indicadas se activan solo para esta petición.
    */
   public async execute(userInput: string, options: ExecuteOptions = {}): Promise<string> {
+    this.validateInput(userInput);
     try {
       const sanitized = sanitizeUserInput(userInput);
 
@@ -106,6 +118,7 @@ export abstract class Agent {
     schema: z.ZodType<T>,
     options: ExecuteOptions = {},
   ): Promise<T> {
+    this.validateInput(userInput);
     const responseFormat = this.buildResponseFormat(schema);
     const sanitized = sanitizeUserInput(userInput);
 
@@ -150,13 +163,13 @@ export abstract class Agent {
    * Conserva system prompt y los últimos MAX_CHAT_HISTORY/2 mensajes.
    */
   private evictIfNeeded(): void {
-    if (this.chatHistory.length <= MAX_CHAT_HISTORY) return;
+    if (this.chatHistory.length <= config.maxChatHistory) return;
 
     const systemMessages = this.chatHistory.filter((m) => m.role === 'system');
     const nonSystemMessages = this.chatHistory.filter((m) => m.role !== 'system');
 
     // Conservar solo la mitad más reciente
-    const keepCount = Math.floor(MAX_CHAT_HISTORY / 2);
+    const keepCount = Math.floor(config.maxChatHistory / 2);
     const kept = nonSystemMessages.slice(-keepCount);
 
     this.chatHistory = [...systemMessages, ...kept];

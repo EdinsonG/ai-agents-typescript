@@ -9,7 +9,7 @@ const FAIL_ICON = '✗';
 export function formatSuiteReport(suite: EvalSuiteResult): string {
   const lines: string[] = [];
 
-  lines.push(`📊 Suite: ${suite.name}`);
+  lines.push(`Suite: ${suite.name}`);
   lines.push('─'.repeat(72));
 
   for (const result of suite.results) {
@@ -23,7 +23,7 @@ export function formatSuiteReport(suite: EvalSuiteResult): string {
 
     if (result.failedChecks.length > 0) {
       for (const check of result.failedChecks) {
-        lines.push(`    ✗ check determinista: ${check}`);
+        lines.push(`    ${FAIL_ICON} check determinista: ${check}`);
       }
     }
   }
@@ -34,4 +34,11 @@ export function formatSuiteReport(suite: EvalSuiteResult): string {
   );
 
   return lines.join('\n');
+}
+
+/**
+ * Formatea el resultado de una suite como JSON para CI/CD integration.
+ */
+export function formatSuiteReportJson(suite: EvalSuiteResult): string {
+  return JSON.stringify(suite, null, 2);
 }

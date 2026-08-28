@@ -1,3 +1,4 @@
+import { config } from '@/core/config.js';
 import type {
   AgentUsageSummary,
   CostRates,
@@ -10,9 +11,6 @@ export const DEFAULT_COST_RATES: CostRates = {
   inputUsdPerMTok: 0.59,
   outputUsdPerMTok: 0.79,
 };
-
-/** Límite de registros en memoria para evitar memory leaks. */
-const MAX_RECORDS = 10_000;
 
 /**
  * Acumula registros de llamadas LLM y agrega métricas de consumo.
@@ -28,8 +26,8 @@ export class ObservabilityCollector {
   public record(record: LLMCallRecord): void {
     this.records.push(record);
     // Ring buffer: eliminar los más antiguos si se excede el límite
-    if (this.records.length > MAX_RECORDS) {
-      this.records.splice(0, this.records.length - MAX_RECORDS);
+    if (this.records.length > config.maxObservabilityRecords) {
+      this.records.splice(0, this.records.length - config.maxObservabilityRecords);
     }
   }
 

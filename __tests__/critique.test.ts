@@ -87,7 +87,9 @@ describe('CritiqueRunner', () => {
 
     const revisionPrompt = agent.provider.requests[1];
     expect(revisionPrompt).toContain('no alcanzó el estándar');
-    expect(revisionPrompt).toContain('falta detalle técnico');
+    expect(revisionPrompt).toContain('CRITERIOS QUE DEBES CUMPLIR');
+    expect(revisionPrompt).toContain('criterio-a');
+    expect(revisionPrompt).toContain('criterio-b');
     expect(revisionPrompt).toContain('tarea');
   });
 
