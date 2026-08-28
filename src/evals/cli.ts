@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import 'dotenv/config';
 import { AGENT_IDS, type AgentId, createAgent } from '@/agents/index.js';
 import { BACKEND_NODE_CASES } from '@/evals/golden/backendNodeCases.js';
@@ -26,17 +27,20 @@ const SUITES: SuiteDefinition[] = [
   { name: 'UX/UI Design Expert', agentId: 'uxui', cases: UXUI_CASES },
 ];
 
-/**
- * Parsea argumentos CLI simples: --provider groq --model llama-3 --format json
- */
-function parseArgs(): {
+interface ParsedArgs {
   provider: string;
   model: string;
   format: 'text' | 'json';
   apiKey?: string;
-} {
+  suite?: string;
+}
+
+/**
+ * Parsea argumentos CLI simples: --provider groq --model llama-3 --format json --suite "Backend"
+ */
+function parseArgs(): ParsedArgs {
   const args = process.argv.slice(2);
-  const result: { provider: string; model: string; format: 'text' | 'json'; apiKey?: string } = {
+  const result: ParsedArgs = {
     provider: 'groq',
     model: 'llama-3.3-70b-versatile',
     format: 'text',
@@ -55,6 +59,9 @@ function parseArgs(): {
         break;
       case '--api-key':
         result.apiKey = args[++i];
+        break;
+      case '--suite':
+        result.suite = args[++i];
         break;
     }
   }
@@ -85,11 +92,22 @@ async function main() {
   const runner = new EvalRunner(judge);
   const agents = new Map(AGENT_IDS.map((id) => [id, createAgent(id, apiKey)]));
 
+  const activeSuites = parsed.suite
+    ? SUITES.filter((s) => s.name.toLowerCase().includes(parsed.suite!.toLowerCase()))
+    : SUITES;
+
+  if (activeSuites.length === 0) {
+    console.error(`No se encontraron suites que coincidan con "${parsed.suite}".`);
+    console.error(`Suites disponibles: ${SUITES.map((s) => s.name).join(', ')}`);
+    process.exitCode = 1;
+    return;
+  }
+
   let totalPassed = 0;
   let totalCases = 0;
   const allResults: Array<{ suite: string; result: EvalSuiteResult }> = [];
 
-  for (const suite of SUITES) {
+  for (const suite of activeSuites) {
     const agent = agents.get(suite.agentId)!;
     const result = await runner.runSuite(suite.name, suite.cases, (testCase) =>
       agent.execute(testCase.input, { skills: testCase.skills }),
