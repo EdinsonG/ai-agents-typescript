@@ -8,8 +8,11 @@ on:
 
 jobs:
   quality:
-    name: Lint · Build · Tests
+    name: Lint · Build · Tests (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
     steps:
       - uses: actions/checkout@v4
 
@@ -18,23 +21,38 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
 
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
 
       - name: Audit de dependencias (falla con vulnerabilidades high)
+        if: matrix.node-version == 22
         run: pnpm audit --audit-level high
 
       - name: Lint (Biome)
+        if: matrix.node-version == 22
         run: pnpm lint
 
       - name: Build
         run: pnpm build
 
-      - name: Tests unitarios
+      - name: Tests con cobertura
+        if: matrix.node-version == 22
+        run: pnpm test:coverage
+
+      - name: Tests (sin cobertura)
+        if: matrix.node-version != 22
         run: pnpm test
+
+      - name: Subir coverage a Codecov
+        if: matrix.node-version == 22
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   evals:
     name: Evals con Groq (opcional)

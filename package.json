@@ -4,6 +4,13 @@
   "type": "module",
   "description": "Core para creación de agentes de IA con TypeScript y Groq",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "ai-agents": "dist/evals/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "packageManager": "pnpm@11.21.0",
   "scripts": {
     "build": "tsc && tsc-alias",
@@ -14,6 +21,7 @@
     "lint:fix": "biome check --write --unsafe src __tests__",
     "format": "biome format --write src __tests__",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
   "keywords": [],
@@ -26,6 +34,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.10",
     "@types/node": "^25.9.0",
+    "@vitest/coverage-v8": "^4.1.11",
     "tsc-alias": "^1.2.2",
     "typescript": "6.0.3",
     "vitest": "^4.1.6"
