@@ -8,27 +8,8 @@ import {
   type FrontendImplementationPlan,
   ImplementationPlanSchema,
 } from '@/agents/FrontendReact/schema.js';
-import { LLMProvider } from '@/core/LLMProvider.js';
 import { skillRegistry } from '@/skills/index.js';
-import type { ChatMessage, GenerateCompletionOptions } from '@/types/index.js';
-
-class CapturingProvider extends LLMProvider {
-  public lastSystemMessage = '';
-  public lastUserMessage = '';
-
-  constructor() {
-    super({ apiKey: 'key', model: 'mock' });
-  }
-
-  public override async generateCompletion(
-    messages: ChatMessage[],
-    _options?: GenerateCompletionOptions,
-  ): Promise<string> {
-    this.lastSystemMessage = messages[0]?.content ?? '';
-    this.lastUserMessage = messages.at(-1)?.content ?? '';
-    return JSON.stringify(validPlan());
-  }
-}
+import { createCapturingProvider } from './mocks/mockProvider.js';
 
 function validPlan(): FrontendImplementationPlan {
   return {
@@ -73,7 +54,6 @@ describe('FrontendReactAgent: stack como skills centralizadas', () => {
     expect(SYSTEM_PROMPT).toContain('next-server-cookies');
     expect(SYSTEM_PROMPT).toContain('App Router');
 
-    // El detalle técnico ya NO vive en el prompt base (ahorro de tokens)
     expect(SYSTEM_PROMPT).not.toContain('zodResolver');
     expect(SYSTEM_PROMPT).not.toContain('NEXT_LOCALE');
     expect(SYSTEM_PROMPT.length).toBeLessThan(6000);
@@ -92,31 +72,32 @@ describe('FrontendReactAgent: stack como skills centralizadas', () => {
   });
 
   it('implementFeatureStructured inyecta el stack automáticamente junto a skills extra sin duplicados', async () => {
-    const provider = new CapturingProvider();
-    const agent = new FrontendReactAgent('key', 'mock', provider);
+    const result = createCapturingProvider({
+      captureSystemAndUser: true,
+      fixedResponse: JSON.stringify(validPlan()),
+    });
+    const agent = new FrontendReactAgent('key', 'mock', result.provider);
 
     await agent.implementFeatureStructured('checkout', {
       skills: ['core-web-vitals', 'zustand-persist'],
     });
 
-    expect(provider.lastSystemMessage).toContain('SKILL ACTIVA');
-    expect(provider.lastSystemMessage).toContain('(zustand-persist)');
-    expect(provider.lastSystemMessage).toContain('(core-web-vitals)');
-    // Sin duplicados: zustand-persist aparece una sola vez como skill activa
-    expect(provider.lastSystemMessage.match(/SKILL ACTIVA/g)).toHaveLength(5);
+    expect(result.lastSystemMessage).toContain('SKILL ACTIVA');
+    expect(result.lastSystemMessage).toContain('(zustand-persist)');
+    expect(result.lastSystemMessage).toContain('(core-web-vitals)');
+    expect(result.lastSystemMessage!.match(/SKILL ACTIVA/g)).toHaveLength(5);
 
-    // La memoria interna conserva el system prompt limpio
     const history = agent['chatHistory'];
     expect(history[0].content).not.toContain('SKILL ACTIVA');
   });
 
   it('execute directo NO activa el stack salvo petición explícita', async () => {
-    const provider = new CapturingProvider();
-    const agent = new FrontendReactAgent('key', 'mock', provider);
+    const result = createCapturingProvider({ captureSystemAndUser: true });
+    const agent = new FrontendReactAgent('key', 'mock', result.provider);
 
     await agent.execute('¿Qué es un Server Component?');
 
-    expect(provider.lastSystemMessage).not.toContain('SKILL ACTIVA');
+    expect(result.lastSystemMessage).not.toContain('SKILL ACTIVA');
   });
 });
 

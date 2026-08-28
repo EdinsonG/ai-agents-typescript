@@ -19,6 +19,10 @@ export class SkillRegistry {
     return this.skills.get(id);
   }
 
+  public has(id: string): boolean {
+    return this.skills.has(id);
+  }
+
   public get availableIds(): string[] {
     return [...this.skills.keys()];
   }

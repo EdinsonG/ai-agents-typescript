@@ -1,35 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { LLMProvider } from '@/core/LLMProvider.js';
 import { LLMJudge } from '@/evals/judge.js';
 import { formatSuiteReport } from '@/evals/reporter.js';
 import { EvalRunner } from '@/evals/runner.js';
-import type {
-  ChatMessage,
-  GenerateCompletionOptions,
-  JsonSchemaResponseFormat,
-} from '@/types/index.js';
-
-class ScriptedProvider extends LLMProvider {
-  public requests: {
-    messages: ChatMessage[];
-    responseFormat?: JsonSchemaResponseFormat;
-  }[] = [];
-
-  constructor(private readonly scripted: string[]) {
-    super({ apiKey: 'key', model: 'mock' });
-  }
-
-  public override async generateCompletion(
-    messages: ChatMessage[],
-    options: GenerateCompletionOptions = {},
-  ): Promise<string> {
-    this.requests.push({
-      messages: structuredClone(messages),
-      responseFormat: options.responseFormat,
-    });
-    return this.scripted[Math.min(this.requests.length - 1, this.scripted.length - 1)];
-  }
-}
+import { createScriptedProvider } from './mocks/mockProvider.js';
 
 function verdictJson(entries: Array<[string, 0 | 1 | 2, string]>): string {
   return JSON.stringify({
@@ -44,7 +17,7 @@ const FULL_VERDICTS = verdictJson([
 
 describe('LLMJudge', () => {
   it('evalúa con formato estructurado y mapea veredictos por id', async () => {
-    const provider = new ScriptedProvider([FULL_VERDICTS]);
+    const provider = createScriptedProvider([FULL_VERDICTS]);
     const judge = new LLMJudge('key', undefined, provider);
 
     const verdicts = await judge.evaluate('tarea de prueba', 'salida de prueba', [
@@ -55,18 +28,16 @@ describe('LLMJudge', () => {
     expect(verdicts['criterio-a']).toEqual({ score: 2, reason: 'cumple plenamente' });
     expect(verdicts['criterio-b'].score).toBe(2);
 
-    // El prompt del juez incluye tarea, salida y criterios
-    const prompt = provider.requests[0].messages.at(-1)!.content;
+    const prompt = (provider as any).requests[0].messages.at(-1)!.content;
     expect(prompt).toContain('tarea de prueba');
     expect(prompt).toContain('salida de prueba');
     expect(prompt).toContain('criterio-b');
 
-    // Solicita salida estructurada al proveedor
-    expect(provider.requests[0].responseFormat?.type).toBe('json_schema');
+    expect((provider as any).requests[0].responseFormat?.type).toBe('json_schema');
   });
 
   it('los criterios omitidos por el juez puntúan 0', async () => {
-    const provider = new ScriptedProvider([verdictJson([['criterio-a', 1, 'parcial']])]);
+    const provider = createScriptedProvider([verdictJson([['criterio-a', 1, 'parcial']])]);
     const judge = new LLMJudge('key', undefined, provider);
 
     const verdicts = await judge.evaluate('tarea', 'salida', [
@@ -84,7 +55,7 @@ describe('LLMJudge', () => {
 
 function makeRunner(verdictEntries: Array<[string, 0 | 1 | 2, string]>): EvalRunner {
   return new EvalRunner(
-    new LLMJudge('key', undefined, new ScriptedProvider([verdictJson(verdictEntries)])),
+    new LLMJudge('key', undefined, createScriptedProvider([verdictJson(verdictEntries)])),
   );
 }
 
@@ -156,10 +127,9 @@ describe('EvalRunner', () => {
   });
 
   it('agrega la suite con media y conteo de aprobados', async () => {
-    const call = 0;
     const verdictsByCall = [verdictJson([['r', 2, 'bien']]), verdictJson([['r', 0, 'mal']])];
 
-    const judge = new LLMJudge('key', undefined, new ScriptedProvider(verdictsByCall));
+    const judge = new LLMJudge('key', undefined, createScriptedProvider(verdictsByCall));
     const runner = new EvalRunner(judge);
 
     const suite = await runner.runSuite(
@@ -168,10 +138,7 @@ describe('EvalRunner', () => {
         { id: 'bueno', input: 'i1', rubric: [{ id: 'r', requirement: 'R' }] },
         { id: 'malo', input: 'i2', rubric: [{ id: 'r', requirement: 'R' }] },
       ],
-      async () => {
-        void call;
-        return 'salida';
-      },
+      async () => 'salida',
     );
 
     expect(suite.name).toBe('suite-demo');

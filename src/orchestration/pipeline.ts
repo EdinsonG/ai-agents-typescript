@@ -3,7 +3,7 @@ import type { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAge
 import type { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
 import type { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
 import { config } from '@/core/config.js';
-import type { DeliveryPackage, PipelineOptions } from '@/types/index.js';
+import type { DeliveryPackage, PipelineOptions, StageTimings } from '@/types/index.js';
 import { buildBackendBrief, buildFrontendBrief, buildUxBrief } from './briefs.js';
 
 /**
@@ -27,7 +27,7 @@ export class ProductDeliveryPipeline {
     }
 
     const { stages = {}, skills = {} } = options;
-    const timings: Record<string, number> = {};
+    const timings: StageTimings = { po: 0 };
 
     const story = await this.runStage('po', timings, () =>
       this.po.generateUserStoryStructured(trimmed, { skills: skills.po }),
@@ -90,8 +90,8 @@ export class ProductDeliveryPipeline {
   }
 
   private async runStage<T>(
-    name: string,
-    timings: Record<string, number>,
+    name: keyof StageTimings,
+    timings: StageTimings,
     task: () => Promise<T>,
   ): Promise<T> {
     const start = Date.now();

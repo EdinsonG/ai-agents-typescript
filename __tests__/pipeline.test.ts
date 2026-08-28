@@ -3,9 +3,8 @@ import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
 import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
 import { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
 import { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
-import { LLMProvider } from '@/core/LLMProvider.js';
 import { ProductDeliveryPipeline } from '@/orchestration/pipeline.js';
-import type { ChatMessage, GenerateCompletionOptions } from '@/types/index.js';
+import { createScriptedProvider } from './mocks/mockProvider.js';
 
 const STORY_JSON = JSON.stringify({
   title: 'Autenticación OAuth2',
@@ -129,27 +128,13 @@ const API_JSON = JSON.stringify({
   risks: ['consistencia de sesiones'],
 });
 
-class ScriptedProvider extends LLMProvider {
-  public requests: ChatMessage[][] = [];
-
-  constructor(private readonly scripted: string[]) {
-    super({ apiKey: 'key', model: 'mock' });
-  }
-
-  public override async generateCompletion(
-    messages: ChatMessage[],
-    _options?: GenerateCompletionOptions,
-  ): Promise<string> {
-    this.requests.push(structuredClone(messages));
-    return this.scripted[Math.min(this.requests.length - 1, this.scripted.length - 1)];
-  }
-}
-
 function makeAgents() {
-  const poProvider = new ScriptedProvider([STORY_JSON]);
-  const uxuiProvider = new ScriptedProvider([DESIGN_JSON]);
-  const frontendProvider = new ScriptedProvider([FRONTEND_JSON]);
-  const backendProvider = new ScriptedProvider([API_JSON]);
+  const poProvider = createScriptedProvider([STORY_JSON], { captureResponseFormat: false });
+  const uxuiProvider = createScriptedProvider([DESIGN_JSON], { captureResponseFormat: false });
+  const frontendProvider = createScriptedProvider([FRONTEND_JSON], {
+    captureResponseFormat: false,
+  });
+  const backendProvider = createScriptedProvider([API_JSON], { captureResponseFormat: false });
 
   const pipeline = new ProductDeliveryPipeline(
     new TechnicalPOAgent('key', 'mock', poProvider),
@@ -185,7 +170,7 @@ describe('ProductDeliveryPipeline', () => {
 
     await pipeline.run('checkout con pago');
 
-    const lastUserMessage = frontendProvider.requests[0].at(-1)!.content;
+    const lastUserMessage = frontendProvider.requests[0].messages.at(-1)!.content;
     expect(lastUserMessage).toContain('Autenticación OAuth2');
     expect(lastUserMessage).toContain('#2563EB');
     expect(lastUserMessage).toContain('TAREAS FRONTEND DEFINIDAS POR EL PRODUCT OWNER');
@@ -197,7 +182,7 @@ describe('ProductDeliveryPipeline', () => {
 
     await pipeline.run('checkout con pago');
 
-    const lastUserMessage = backendProvider.requests[0].at(-1)!.content;
+    const lastUserMessage = backendProvider.requests[0].messages.at(-1)!.content;
     expect(lastUserMessage).toContain('Rate-limiting y sanitización con zod');
     expect(lastUserMessage).toContain('(database) índice en users.email');
   });

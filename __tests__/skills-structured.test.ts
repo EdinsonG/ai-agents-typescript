@@ -3,14 +3,9 @@ import { z } from 'zod';
 import { Agent } from '@/core/Agent.js';
 import { StructuredOutputError } from '@/core/errors.js';
 import { parseJsonLoose } from '@/core/json.js';
-import { LLMProvider } from '@/core/LLMProvider.js';
 import { SkillRegistry } from '@/core/SkillRegistry.js';
-import type {
-  ChatMessage,
-  GenerateCompletionOptions,
-  JsonSchemaResponseFormat,
-  Skill,
-} from '@/types/index.js';
+import type { Skill } from '@/types/index.js';
+import { createScriptedProvider } from './mocks/mockProvider.js';
 
 const DUMMY_SKILL: Skill = {
   id: 'test-skill',
@@ -19,44 +14,17 @@ const DUMMY_SKILL: Skill = {
   instructions: 'Instrucciones de la skill de prueba.',
 };
 
-class QueuedProvider extends LLMProvider {
-  public calls: {
-    messages: ChatMessage[];
-    responseFormat?: JsonSchemaResponseFormat;
-  }[] = [];
-
-  private index = 0;
-
-  constructor(private readonly responses: string[]) {
-    super({ apiKey: 'test-key', model: 'mock-model' });
-  }
-
-  public async generateCompletion(
-    messages: ChatMessage[],
-    options: GenerateCompletionOptions = {},
-  ): Promise<string> {
-    this.calls.push({
-      messages: structuredClone(messages),
-      responseFormat: options.responseFormat,
-    });
-
-    const current = Math.min(this.index, this.responses.length - 1);
-    this.index++;
-    return this.responses[current];
-  }
-}
-
 class TestAgent extends Agent {
   constructor(responses: string[], registry?: SkillRegistry) {
     super(
       { name: 'Test Agent', systemPrompt: 'SYSTEM_BASE', apiKey: 'key', model: 'mock' },
-      new QueuedProvider(responses),
+      createScriptedProvider(responses),
       registry,
     );
   }
 
-  public get queuedProvider(): QueuedProvider {
-    return this.provider as QueuedProvider;
+  public get queuedProvider(): any {
+    return this.provider;
   }
 
   public run(input: string, options?: Parameters<Agent['execute']>[1]) {
@@ -115,12 +83,11 @@ describe('Agent.execute con skills', () => {
 
     await agent.run('hola', { skills: ['test-skill'] });
 
-    const sent = agent.queuedProvider.calls[0].messages;
+    const sent = agent.queuedProvider.requests[0].messages;
     expect(sent[0].role).toBe('system');
     expect(sent[0].content).toContain('SKILL ACTIVA');
     expect(sent[0].content).toContain(DUMMY_SKILL.instructions);
 
-    // La memoria interna conserva el system prompt limpio
     const history = agent['chatHistory'];
     expect(history[0].content).toBe('SYSTEM_BASE');
   });
@@ -130,7 +97,7 @@ describe('Agent.execute con skills', () => {
 
     await agent.run('hola');
 
-    expect(agent.queuedProvider.calls[0].messages[0].content).toBe('SYSTEM_BASE');
+    expect(agent.queuedProvider.requests[0].messages[0].content).toBe('SYSTEM_BASE');
   });
 
   it('lanza error si una skill solicitada no existe en el registro del agente', async () => {
@@ -149,7 +116,7 @@ describe('Agent.executeStructured', () => {
     const result = await agent.runStructured('pregunta', Schema);
 
     expect(result).toEqual({ answer: 42 });
-    expect(agent.queuedProvider.calls[0].responseFormat?.type).toBe('json_schema');
+    expect(agent.queuedProvider.requests[0].responseFormat?.type).toBe('json_schema');
   });
 
   it('acepta JSON con cercos de código', async () => {
@@ -164,15 +131,15 @@ describe('Agent.executeStructured', () => {
     const result = await agent.runStructured('pregunta', Schema);
 
     expect(result).toEqual({ answer: 9 });
-    expect(agent.queuedProvider.calls).toHaveLength(2);
+    expect(agent.queuedProvider.requests).toHaveLength(2);
 
-    const secondCallMessages = agent.queuedProvider.calls[1].messages;
+    const secondCallMessages = agent.queuedProvider.requests[1].messages;
     const feedbackMessage = secondCallMessages.at(-1);
     expect(feedbackMessage?.role).toBe('user');
     expect(feedbackMessage?.content).toContain('NO cumple el esquema');
     expect(
       secondCallMessages.some(
-        (m) => m.role === 'assistant' && m.content === 'lorem ipsum sin json',
+        (m: any) => m.role === 'assistant' && m.content === 'lorem ipsum sin json',
       ),
     ).toBe(true);
   });
