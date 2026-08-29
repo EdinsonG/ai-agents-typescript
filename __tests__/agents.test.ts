@@ -3,7 +3,6 @@ import {
   AGENT_IDS,
   BackendNodeAgent,
   createAgent,
-  FrontendAngularAgent,
   FrontendReactAgent,
   TechnicalPOAgent,
   UXUIAgent,
@@ -22,12 +21,6 @@ const CASES = [
     factory: (provider: any) => new FrontendReactAgent('key', 'model', provider),
     method: 'implementFeature' as const,
     promptKeyword: 'React 19',
-  },
-  {
-    name: 'FrontendAngularAgent',
-    factory: (provider: any) => new FrontendAngularAgent('key', 'model', provider),
-    method: 'implementFeature' as const,
-    promptKeyword: 'Angular 19',
   },
   {
     name: 'BackendNodeAgent',
@@ -89,12 +82,11 @@ describe('createAgent', () => {
   it('crea el agente correcto para cada id', () => {
     expect(createAgent('po', 'key')).toBeInstanceOf(TechnicalPOAgent);
     expect(createAgent('react', 'key')).toBeInstanceOf(FrontendReactAgent);
-    expect(createAgent('angular', 'key')).toBeInstanceOf(FrontendAngularAgent);
     expect(createAgent('backend', 'key')).toBeInstanceOf(BackendNodeAgent);
     expect(createAgent('uxui', 'key')).toBeInstanceOf(UXUIAgent);
   });
 
   it('expone ids estables de agentes', () => {
-    expect(AGENT_IDS).toEqual(['po', 'react', 'angular', 'backend', 'uxui']);
+    expect(AGENT_IDS).toEqual(['po', 'react', 'backend', 'uxui']);
   });
 });

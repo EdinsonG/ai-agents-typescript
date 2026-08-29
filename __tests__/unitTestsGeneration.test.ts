@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
-import { FrontendAngularAgent } from '@/agents/FrontendAngular/FrontendAngularAgent.js';
 import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
 import type { LLMProvider } from '@/core/LLMProvider.js';
 import type { UnitTestSuite } from '@/types/index.js';
@@ -45,11 +44,6 @@ const CASES = [
     name: 'FrontendReactAgent',
     make: (provider: LLMProvider) => new FrontendReactAgent('key', 'mock', provider),
     stackKeyword: 'React Testing Library',
-  },
-  {
-    name: 'FrontendAngularAgent',
-    make: (provider: LLMProvider) => new FrontendAngularAgent('key', 'mock', provider),
-    stackKeyword: 'TestBed',
   },
   {
     name: 'BackendNodeAgent',

@@ -5,7 +5,6 @@
  */
 
 export type { ApiDesign } from '@/agents/BackendNode/schema.js';
-export type { AngularImplementationPlan } from '@/agents/FrontendAngular/schema.js';
 export type { FrontendImplementationPlan } from '@/agents/FrontendReact/schema.js';
 export type { UserStoryDeliverable } from '@/agents/TechnicalPO/schema.js';
 export type { DesignSpec } from '@/agents/UXUI/schema.js';

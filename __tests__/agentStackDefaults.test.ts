@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
-import { FrontendAngularAgent } from '@/agents/FrontendAngular/FrontendAngularAgent.js';
 import { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
 import type { LLMProvider } from '@/core/LLMProvider.js';
 import { mergeSkillOptions } from '@/core/SkillRegistry.js';
@@ -8,13 +7,6 @@ import { skillRegistry } from '@/skills/index.js';
 import { createCapturingProvider } from './mocks/mockProvider.js';
 
 const AGENTS = [
-  {
-    name: 'FrontendAngularAgent',
-    make: (provider: LLMProvider) => new FrontendAngularAgent('key', 'mock', provider),
-    defaults: ['angular-standalone-modern', 'angular-signals', 'angular-typed-forms'],
-    freeMethod: 'implementFeature' as const,
-    input: 'tabla de usuarios',
-  },
   {
     name: 'BackendNodeAgent',
     make: (provider: LLMProvider) => new BackendNodeAgent('key', 'mock', provider),

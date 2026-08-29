@@ -2,7 +2,6 @@
 import 'dotenv/config';
 import { AGENT_IDS, type AgentId, createAgent } from '@/agents/index.js';
 import { BACKEND_NODE_CASES } from '@/evals/golden/backendNodeCases.js';
-import { FRONTEND_ANGULAR_CASES } from '@/evals/golden/frontendAngularCases.js';
 import { FRONTEND_REACT_CASES } from '@/evals/golden/frontendReactCases.js';
 import { TECHNICAL_PO_CASES } from '@/evals/golden/technicalPoCases.js';
 import { UXUI_CASES } from '@/evals/golden/uxuiCases.js';
@@ -22,7 +21,6 @@ interface SuiteDefinition {
 const SUITES: SuiteDefinition[] = [
   { name: 'Technical Product Owner', agentId: 'po', cases: TECHNICAL_PO_CASES },
   { name: 'Frontend React Expert', agentId: 'react', cases: FRONTEND_REACT_CASES },
-  { name: 'Frontend Angular Expert', agentId: 'angular', cases: FRONTEND_ANGULAR_CASES },
   { name: 'Backend Node Expert', agentId: 'backend', cases: BACKEND_NODE_CASES },
   { name: 'UX/UI Design Expert', agentId: 'uxui', cases: UXUI_CASES },
 ];
