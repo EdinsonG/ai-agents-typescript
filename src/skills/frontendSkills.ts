@@ -26,17 +26,3 @@ Aplica disciplina server-first:
 - Streaming: usa Suspense con fallbacks significativos por sección independiente, no un spinner global.
 - Patrones de composición preferidos: pasar componentes servidor como children/props dentro de clientes ("component slots").`,
 };
-
-export const ANGULAR_SIGNALS_SKILL: Skill = {
-  id: 'angular-signals',
-  name: 'Patrones Signals (Angular)',
-  description: 'Uso idiomático de signals, computed, effect y APIs reactivas modernas.',
-  instructions: `
-Domina y aplica los patrones signals:
-- Estado local con signal(); valores derivados SIEMPRE con computed() (nunca effects para derivar estado).
-- effect() solo para side-effects legítimos (logging, persistencia, DOM imperativo); documenta por qué es efecto y no computed.
-- inputs()/output()/model() con transform cuando aplique; viewChild() signal queries en lugar de decoradores.
-- Para recursos asíncronos: rxResource/httpResource o el patrón de estado con signal + switchMap cancelable; gestiona loading/error como parte del estado tipado (union type).
-- Evita fugas: takeUntilDestroyed en suscripciones RxJS dentro de contexto de inyección.
-- OnPush + signals = sin zone.js (provideExperimentalZonelessChangeDetection) donde el proyecto lo permita; si no, mantén zone pero sin depender de detección implícita.`,
-};

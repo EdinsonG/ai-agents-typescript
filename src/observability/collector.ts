@@ -1,3 +1,6 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { config } from '@/core/config.js';
 import type {
   AgentUsageSummary,
   CostRates,
@@ -15,6 +18,7 @@ export const DEFAULT_COST_RATES: CostRates = {
  * Acumula registros de llamadas LLM y agrega métricas de consumo.
  * Los costos son estimaciones configurables: actualiza las tarifas según
  * los precios vigentes del modelo que uses.
+ * Implementa ring buffer: al superar MAX_RECORDS se eliminan los más antiguos.
  */
 export class ObservabilityCollector {
   private readonly records: LLMCallRecord[] = [];
@@ -23,6 +27,10 @@ export class ObservabilityCollector {
 
   public record(record: LLMCallRecord): void {
     this.records.push(record);
+    // Ring buffer: eliminar los más antiguos si se excede el límite
+    if (this.records.length > config.maxObservabilityRecords) {
+      this.records.splice(0, this.records.length - config.maxObservabilityRecords);
+    }
   }
 
   public getRecords(): readonly LLMCallRecord[] {
@@ -94,6 +102,43 @@ export class ObservabilityCollector {
   /** Exporta los registros en formato JSON Lines (un objeto por línea). */
   public toJSONL(): string {
     return this.records.map((record) => JSON.stringify(record)).join('\n');
+  }
+
+  /**
+   * Saves records to a JSONL file.
+   */
+  public saveToFile(filePath: string): void {
+    const dir = dirname(filePath);
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+    }
+    writeFileSync(filePath, this.toJSONL(), 'utf-8');
+  }
+
+  /**
+   * Loads records from a JSONL file, appending to existing records.
+   */
+  public loadFromFile(filePath: string): void {
+    if (!existsSync(filePath)) return;
+
+    const content = readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n').filter((line) => line.trim());
+
+    for (const line of lines) {
+      try {
+        const record = JSON.parse(line) as LLMCallRecord;
+        this.record(record);
+      } catch {
+        // Skip malformed lines
+      }
+    }
+  }
+
+  /**
+   * Exports the summary as a JSON object.
+   */
+  public toJSON(): ObservabilitySummary {
+    return this.summary();
   }
 
   private estimateRecordCost(record: LLMCallRecord): number {

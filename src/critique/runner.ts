@@ -1,4 +1,5 @@
 import type { Agent } from '@/core/Agent.js';
+import { config } from '@/core/config.js';
 import type { LLMJudge } from '@/evals/judge.js';
 import { computeScorePercent, toVerdictList } from '@/evals/scoring.js';
 import type { CritiqueOptions, CritiqueResult } from '@/types/index.js';
@@ -7,10 +8,11 @@ const DEFAULT_THRESHOLD = 80;
 
 /**
  * Autocrítica opt-in: genera con el agente, juzga la salida contra una rúbrica
- * con el LLMJudge y, si queda bajo el umbral, pide una revisión con feedback
- * de los veredictos. Devuelve siempre la mejor de las dos salidas.
+ * con el LLMJudge y, si queda bajo el umbral, revisa con feedback de los
+ * veredictos. Soporta múltiples rondas de revisión (maxRevisions).
+ * Devuelve siempre la mejor salida encontrada.
  *
- * Costo: hasta 2 llamadas del agente + 2 del juez por ejecución.
+ * Costo: hasta (1 + maxRevisions) llamadas del agente + (1 + maxRevisions) del juez.
  */
 export class CritiqueRunner {
   constructor(private readonly judge: LLMJudge) {}
@@ -20,7 +22,12 @@ export class CritiqueRunner {
     input: string,
     options: CritiqueOptions,
   ): Promise<CritiqueResult> {
-    const { rubric, threshold = DEFAULT_THRESHOLD, revise = true } = options;
+    const {
+      rubric,
+      threshold = DEFAULT_THRESHOLD,
+      revise = true,
+      maxRevisions = config.maxRevisions,
+    } = options;
     if (rubric.length === 0) {
       throw new Error('La rúbrica de autocrítica no puede estar vacía');
     }
@@ -35,29 +42,47 @@ export class CritiqueRunner {
         output: initialOutput,
         initialScore,
         finalScore: initialScore,
+        revisionsDone: 0,
         revised: false,
         verdicts: toVerdictList(rubric, initialVerdicts),
       };
     }
 
-    const revisedOutput = await agent.execute(
-      buildRevisionPrompt(input, initialOutput, initialVerdicts),
-      {
-        skills: options.skills,
-      },
-    );
-    const revisedVerdictsById = await this.judge.evaluate(input, revisedOutput, rubric);
-    const revisedScore = computeScorePercent(rubric, revisedVerdictsById);
+    let bestOutput = initialOutput;
+    let bestScore = initialScore;
+    let bestVerdicts = initialVerdicts;
+    let currentOutput = initialOutput;
+    let revisionsDone = 0;
 
-    const keepRevised = revisedScore >= initialScore;
+    for (let revision = 0; revision < maxRevisions; revision++) {
+      revisionsDone++;
+
+      const revisedOutput = await agent.execute(buildRevisionPrompt(input, currentOutput, rubric), {
+        skills: options.skills,
+      });
+      const revisedVerdicts = await this.judge.evaluate(input, revisedOutput, rubric);
+      const revisedScore = computeScorePercent(rubric, revisedVerdicts);
+
+      if (revisedScore > bestScore) {
+        bestOutput = revisedOutput;
+        bestScore = revisedScore;
+        bestVerdicts = revisedVerdicts;
+      }
+
+      currentOutput = revisedOutput;
+
+      // Si ya alcanzó el umbral, no necesita más revisiones
+      if (revisedScore >= threshold) break;
+    }
 
     return {
       input,
-      output: keepRevised ? revisedOutput : initialOutput,
+      output: bestOutput,
       initialScore,
-      finalScore: Math.max(initialScore, revisedScore),
+      finalScore: bestScore,
+      revisionsDone,
       revised: true,
-      verdicts: toVerdictList(rubric, keepRevised ? revisedVerdictsById : initialVerdicts),
+      verdicts: toVerdictList(rubric, bestVerdicts),
     };
   }
 }
@@ -65,22 +90,22 @@ export class CritiqueRunner {
 function buildRevisionPrompt(
   originalInput: string,
   previousOutput: string,
-  verdicts: Record<string, { score: 0 | 1 | 2; reason: string }>,
+  rubric: { id: string; requirement: string }[],
 ): string {
-  const feedback = Object.entries(verdicts)
-    .map(([id, verdict]) => `- ${id}: ${verdict.score}/2 — ${verdict.reason}`)
-    .join('\n');
+  const criteriaList = rubric.map((c) => `- ${c.id}: ${c.requirement}`).join('\n');
 
   return [
-    'Tu respuesta anterior no alcanzó el estándar de calidad requerido. Evaluación por criterios:',
-    feedback,
+    'Tu respuesta anterior no alcanzó el estándar de calidad requerido.',
     '',
-    'Reescribe la respuesta completa corrigiendo cada criterio con puntuación menor a 2, manteniendo lo que ya estaba bien.',
-    '',
-    `## TAREA ORIGINAL`,
-    originalInput,
+    '## CRITERIOS QUE DEBES CUMPLIR',
+    criteriaList,
     '',
     '## TU RESPUESTA ANTERIOR',
     previousOutput,
+    '',
+    '## TAREA ORIGINAL',
+    originalInput,
+    '',
+    'Reescribe la respuesta completa cumpliendo todos los criterios, manteniendo lo que ya estaba bien.',
   ].join('\n');
 }

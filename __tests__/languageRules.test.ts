@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { SYSTEM_PROMPT as BACKEND_PROMPT } from '@/agents/BackendNode/prompt.js';
-import { SYSTEM_PROMPT as ANGULAR_PROMPT } from '@/agents/FrontendAngular/prompt.js';
 import { SYSTEM_PROMPT as REACT_PROMPT } from '@/agents/FrontendReact/prompt.js';
 import { SYSTEM_PROMPT as PO_PROMPT } from '@/agents/TechnicalPO/prompt.js';
 import { SYSTEM_PROMPT as UXUI_PROMPT } from '@/agents/UXUI/prompt.js';
@@ -10,7 +9,6 @@ import { skillRegistry } from '@/skills/index.js';
 const PROMPTS: Array<[string, string]> = [
   ['TechnicalPO', PO_PROMPT],
   ['FrontendReact', REACT_PROMPT],
-  ['FrontendAngular', ANGULAR_PROMPT],
   ['BackendNode', BACKEND_PROMPT],
   ['UXUI', UXUI_PROMPT],
 ];
@@ -27,7 +25,7 @@ describe('regla de idioma centralizada', () => {
 
     // Todas las variantes antiguas desaparecieron: solo existe la unificada
     const allPrompts = PROMPTS.map(([, prompt]) => prompt).join('\n---\n');
-    expect(allPrompts.match(/Escribe todas tus respuestas/g)).toHaveLength(5);
+    expect(allPrompts.match(/Escribe todas tus respuestas/g)).toHaveLength(4);
     expect(allPrompts).not.toContain('análisis, historias de usuario y tareas estrictamente');
     expect(allPrompts).not.toContain('especificaciones estrictamente');
   });

@@ -1,30 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { Agent } from '@/core/Agent.js';
-import { LLMProvider } from '@/core/LLMProvider.js';
+import type { LLMProvider } from '@/core/LLMProvider.js';
 import { CritiqueRunner } from '@/critique/runner.js';
 import { LLMJudge } from '@/evals/judge.js';
 import type { CritiqueOptions } from '@/types/index.js';
-
-class QueuedProvider extends LLMProvider {
-  public requests: string[] = [];
-
-  constructor(private readonly responses: string[]) {
-    super({ apiKey: 'key', model: 'mock' });
-  }
-
-  public override async generateCompletion(messages: { content: string }[]): Promise<string> {
-    this.requests.push(messages.at(-1)?.content ?? '');
-    return this.responses[Math.min(this.requests.length - 1, this.responses.length - 1)];
-  }
-}
+import { createScriptedProvider } from './mocks/mockProvider.js';
 
 class ScriptedAgent extends Agent {
-  public provider: QueuedProvider;
+  public provider: LLMProvider & { requests: { messages: { content: string }[] }[] };
 
   constructor(responses: string[]) {
-    const queued = new QueuedProvider(responses);
-    super({ name: 'Scripted Agent', systemPrompt: 'SYS', apiKey: 'key', model: 'mock' }, queued);
-    this.provider = queued;
+    const scripted = createScriptedProvider(responses);
+    super({ name: 'Scripted Agent', systemPrompt: 'SYS', apiKey: 'key', model: 'mock' }, scripted);
+    this.provider = scripted as any;
   }
 }
 
@@ -40,7 +28,7 @@ function verdictJson(entries: Array<[string, 0 | 1 | 2, string]>): string {
 }
 
 function makeRunner(judgeResponses: string[]): CritiqueRunner {
-  return new CritiqueRunner(new LLMJudge('key', undefined, new QueuedProvider(judgeResponses)));
+  return new CritiqueRunner(new LLMJudge('key', undefined, createScriptedProvider(judgeResponses)));
 }
 
 const OPTIONS: CritiqueOptions = { rubric: RUBRIC, threshold: 80 };
@@ -85,9 +73,11 @@ describe('CritiqueRunner', () => {
     expect(result.output).toBe('salida corregida');
     expect(agent.provider.requests).toHaveLength(2);
 
-    const revisionPrompt = agent.provider.requests[1];
+    const revisionPrompt = agent.provider.requests[1].messages.at(-1)!.content;
     expect(revisionPrompt).toContain('no alcanzó el estándar');
-    expect(revisionPrompt).toContain('falta detalle técnico');
+    expect(revisionPrompt).toContain('CRITERIOS QUE DEBES CUMPLIR');
+    expect(revisionPrompt).toContain('criterio-a');
+    expect(revisionPrompt).toContain('criterio-b');
     expect(revisionPrompt).toContain('tarea');
   });
 

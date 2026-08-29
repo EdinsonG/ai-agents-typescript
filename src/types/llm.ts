@@ -60,6 +60,16 @@ export interface InferenceRequest {
  */
 export interface InferenceClient {
   complete(request: InferenceRequest): Promise<CompletionResult>;
+  /** Streaming support — optional for backward compatibility */
+  stream?(request: InferenceRequest): AsyncGenerator<StreamChunk, void, unknown>;
+}
+
+/** A single chunk from a streaming response. */
+export interface StreamChunk {
+  /** Delta content (partial text) */
+  delta: string;
+  /** Token usage (only in the final chunk, if available) */
+  usage?: TokenUsage;
 }
 
 /** Mensaje de chat en formato OpenAI (estándar de facto). */

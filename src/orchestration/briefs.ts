@@ -74,13 +74,17 @@ export function buildFrontendBrief(
   return sections.join('\n');
 }
 
-export function buildBackendBrief(requirement: string, story: UserStoryDeliverable): string {
+export function buildBackendBrief(
+  requirement: string,
+  story: UserStoryDeliverable,
+  design?: DesignSpec,
+): string {
   const backendTasks = story.tasks
     .filter((task) => task.area === 'backend' || task.area === 'database')
     .map((task) => `- (${task.area}) ${task.description}`)
     .join('\n');
 
-  return [
+  const sections = [
     'Diseña la API y arquitectura backend para la siguiente funcionalidad:',
     requirement,
     '',
@@ -89,8 +93,22 @@ export function buildBackendBrief(requirement: string, story: UserStoryDeliverab
     '',
     '## REQUISITOS DE SEGURIDAD Y CUMPLIMIENTO',
     story.technicalContext.securityCompliance,
-    ...(backendTasks
-      ? ['', '## TAREAS BACKEND/DATOS DEFINIDAS POR EL PRODUCT OWNER', backendTasks]
-      : []),
-  ].join('\n');
+  ];
+
+  if (design) {
+    const components = design.components.map((c) => c.name).join(', ');
+    sections.push(
+      '',
+      '## ESPECIFICACIÓN DE DISEÑO (del agente UX/UI)',
+      `Componentes frontales esperados: ${components}`,
+      `Estados de interfaz: ${design.interfaceStates.join(', ')}`,
+      `Accesibilidad: ${design.accessibilityChecklist.join('; ')}`,
+    );
+  }
+
+  if (backendTasks) {
+    sections.push('', '## TAREAS BACKEND/DATOS DEFINIDAS POR EL PRODUCT OWNER', backendTasks);
+  }
+
+  return sections.join('\n');
 }

@@ -1,33 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
-import { FrontendAngularAgent } from '@/agents/FrontendAngular/FrontendAngularAgent.js';
 import { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
-import { LLMProvider } from '@/core/LLMProvider.js';
+import type { LLMProvider } from '@/core/LLMProvider.js';
 import { mergeSkillOptions } from '@/core/SkillRegistry.js';
 import { skillRegistry } from '@/skills/index.js';
-import type { ChatMessage } from '@/types/index.js';
-
-class CapturingProvider extends LLMProvider {
-  public requests: ChatMessage[][] = [];
-
-  constructor() {
-    super({ apiKey: 'key', model: 'mock' });
-  }
-
-  public override async generateCompletion(messages: ChatMessage[]): Promise<string> {
-    this.requests.push(structuredClone(messages));
-    return 'RESPUESTA_LIBRE';
-  }
-}
+import { createCapturingProvider } from './mocks/mockProvider.js';
 
 const AGENTS = [
-  {
-    name: 'FrontendAngularAgent',
-    make: (provider: LLMProvider) => new FrontendAngularAgent('key', 'mock', provider),
-    defaults: ['angular-standalone-modern', 'angular-signals', 'angular-typed-forms'],
-    freeMethod: 'implementFeature' as const,
-    input: 'tabla de usuarios',
-  },
   {
     name: 'BackendNodeAgent',
     make: (provider: LLMProvider) => new BackendNodeAgent('key', 'mock', provider),
@@ -50,26 +29,26 @@ describe.each(AGENTS)('$name: skills por defecto', ({ make, defaults, freeMethod
   });
 
   it(`${freeMethod} inyecta automáticamente las skills del stack`, async () => {
-    const provider = new CapturingProvider();
+    const { provider, requests } = createCapturingProvider();
     const agent = make(provider);
 
     await agent[freeMethod](input);
 
-    const system = provider.requests[0][0].content;
+    const system = requests[0][0].content;
     expect(system).toContain('SKILL ACTIVA');
     for (const id of defaults) {
       expect(system).toContain(`(${id})`);
     }
-    expect(provider.requests).toHaveLength(1);
+    expect(requests).toHaveLength(1);
   });
 
   it('execute directo NO inyecta las skills salvo petición explícita', async () => {
-    const provider = new CapturingProvider();
+    const { provider, requests } = createCapturingProvider();
     const agent = make(provider);
 
     await agent.execute('pregunta conceptual');
 
-    expect(provider.requests[0][0].content).not.toContain('SKILL ACTIVA');
+    expect(requests[0][0].content).not.toContain('SKILL ACTIVA');
   });
 });
 

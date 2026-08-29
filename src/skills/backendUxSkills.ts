@@ -69,5 +69,5 @@ Toda especificación de UI declara tokens verificables y estados completos:
 - Colores SIEMPRE con hex y ratio de contraste declarado (≥4.5:1 texto normal, ≥3:1 texto grande); nada de "azul primario" sin valor.
 - Escala tipográfica modular y espaciado en base 4/8pt; radios y sombras como tokens nombrados, no valores sueltos por pantalla.
 - Cada componente define sus variantes Y sus estados completos: default, hover, focus-visible, active, disabled, loading, vacío, error y overflow — un componente sin estados es una spec incompleta.
-- Los tokens se expresan listos para Tailwind/CSS variables compatibles con React o Angular.`,
+- Los tokens se expresan listos para Tailwind/CSS variables compatibles con React.`,
 };

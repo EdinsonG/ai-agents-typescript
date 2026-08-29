@@ -9,10 +9,6 @@ import type {
   UserStoryDeliverable,
 } from '@/types/deliverables.js';
 
-export interface PipelineStageOptions {
-  skills?: readonly string[];
-}
-
 export interface PipelineOptions {
   /** Etapas opcionales; por defecto se ejecutan todas tras el PO */
   stages?: {
@@ -28,6 +24,13 @@ export interface PipelineOptions {
   };
 }
 
+export interface StageTimings {
+  po: number;
+  uxui?: number;
+  frontend?: number;
+  backend?: number;
+}
+
 export type DeliveryPackage = {
   requirement: string;
   story: UserStoryDeliverable;
@@ -35,5 +38,5 @@ export type DeliveryPackage = {
   frontend?: FrontendImplementationPlan;
   api?: ApiDesign;
   /** Duración de cada etapa ejecutada, en ms */
-  stageTimingsMs: Record<string, number>;
+  stageTimingsMs: StageTimings;
 };

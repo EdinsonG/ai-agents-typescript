@@ -2,23 +2,63 @@
   "name": "ai-agents-core",
   "version": "1.0.0",
   "type": "module",
-  "description": "Core para creación de agentes de IA con TypeScript y Groq",
+  "description": "Core for building, orchestrating and scaling AI agents with TypeScript. Multi-provider LLM support, structured output, tool calling, streaming, and multi-agent pipelines.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "ai-agents": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "packageManager": "pnpm@11.21.0",
   "scripts": {
     "build": "tsc && tsc-alias",
-    "start": "node dist/index.js",
-    "dev": "tsc && tsc-alias && node dist/index.js",
+    "start": "node dist/cli.js",
+    "dev": "tsc && tsc-alias && node dist/cli.js",
     "evals": "tsc && tsc-alias && node dist/evals/cli.js",
     "lint": "biome check src __tests__",
     "lint:fix": "biome check --write --unsafe src __tests__",
     "format": "biome format --write src __tests__",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "docs": "typedoc src/index.ts --out docs"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "ai",
+    "agents",
+    "llm",
+    "typescript",
+    "groq",
+    "pipeline",
+    "structured-output",
+    "tool-calling",
+    "streaming",
+    "multi-agent",
+    "openai",
+    "anthropic"
+  ],
+  "author": "EdinsonG",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EdinsonG/ai-agents-typescript.git"
+  },
+  "homepage": "https://github.com/EdinsonG/ai-agents-typescript#readme",
+  "bugs": {
+    "url": "https://github.com/EdinsonG/ai-agents-typescript/issues"
+  },
+  "sideEffects": false,
   "dependencies": {
     "dotenv": "^17.4.2",
     "zod": "^4.4.3"
@@ -26,7 +66,9 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.10",
     "@types/node": "^25.9.0",
+    "@vitest/coverage-v8": "^4.1.11",
     "tsc-alias": "^1.2.2",
+    "typedoc": "^0.27.0",
     "typescript": "6.0.3",
     "vitest": "^4.1.6"
   }

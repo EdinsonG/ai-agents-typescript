@@ -8,6 +8,8 @@ export interface EvalRubricCriterion {
   id: string;
   /** Requisito que debe cumplir la salida, redactado de forma verificable */
   requirement: string;
+  /** Peso relativo del criterio (default: 1). Mayor peso = mayor importancia */
+  weight?: number;
 }
 
 /** Verificación determinista y barata (sin LLM) sobre la salida cruda. */

@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * Esquema compartido para suites de pruebas unitarias generadas por los agentes.
- * Cada especialidad (React, Angular, Backend) lo instancia con su stack de testing.
+ * Cada especialidad (React, Backend) lo instancia con su stack de testing.
  */
 
 export const UnitTestFileSchema = z.object({

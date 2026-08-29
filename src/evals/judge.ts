@@ -24,8 +24,35 @@ Escala de puntuación por criterio:
 Sé exigente: la ambigüedad no cuenta como cumplimiento. Juzga cada criterio de forma independiente.
 Responde únicamente con el JSON del esquema solicitado.`;
 
+/**
+ * Lock simple para serializar llamadas concurrentes al juez.
+ * Previene race conditions en clearMemory() + executeStructured().
+ */
+class SimpleLock {
+  private queue: Array<() => void> = [];
+
+  async acquire(): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.queue.length === 0) {
+        this.queue.push(() => {});
+        resolve();
+      } else {
+        this.queue.push(resolve);
+      }
+    });
+  }
+
+  release(): void {
+    this.queue.shift();
+    if (this.queue.length > 0) {
+      this.queue[0]();
+    }
+  }
+}
+
 export class LLMJudge {
   private readonly judgeAgent: JudgeAgent;
+  private readonly lock = new SimpleLock();
 
   constructor(apiKey: string, model?: string, provider?: LLMProvider) {
     this.judgeAgent = new JudgeAgent(apiKey, model, provider);
@@ -34,28 +61,34 @@ export class LLMJudge {
   /**
    * Evalúa una salida contra la rúbrica y devuelve un veredicto por criterio.
    * Si el juez omite algún criterio, ese criterio puntúa 0.
+   * Usa lock para serializar llamadas concurrentes y prevenir race conditions.
    */
   public async evaluate(
     taskInput: string,
     producedOutput: string,
     criteria: EvalRubricCriterion[],
   ): Promise<Record<string, { score: 0 | 1 | 2; reason: string }>> {
-    const verdicts = await this.judgeAgent.judge(
-      buildJudgePrompt(taskInput, producedOutput, criteria),
-      VerdictSchema,
-    );
+    await this.lock.acquire();
+    try {
+      const verdicts = await this.judgeAgent.judge(
+        buildJudgePrompt(taskInput, producedOutput, criteria),
+        VerdictSchema,
+      );
 
-    const byId = new Map(verdicts.verdicts.map((verdict) => [verdict.id, verdict]));
-    const result: Record<string, { score: 0 | 1 | 2; reason: string }> = {};
+      const byId = new Map(verdicts.verdicts.map((verdict) => [verdict.id, verdict]));
+      const result: Record<string, { score: 0 | 1 | 2; reason: string }> = {};
 
-    for (const criterion of criteria) {
-      const verdict = byId.get(criterion.id);
-      result[criterion.id] = verdict
-        ? { score: verdict.score, reason: verdict.reason }
-        : { score: 0, reason: 'El juez no evaluó este criterio.' };
+      for (const criterion of criteria) {
+        const verdict = byId.get(criterion.id);
+        result[criterion.id] = verdict
+          ? { score: verdict.score, reason: verdict.reason }
+          : { score: 0, reason: 'El juez no evaluó este criterio.' };
+      }
+
+      return result;
+    } finally {
+      this.lock.release();
     }
-
-    return result;
   }
 }
 

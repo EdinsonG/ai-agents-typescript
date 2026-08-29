@@ -13,7 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Lee la versión desde el campo packageManager de package.json
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -24,7 +23,7 @@ jobs:
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
 
-      - name: Audit de dependencias (falla con vulnerabilidades high)
+      - name: Audit de dependencias
         run: pnpm audit --audit-level high
 
       - name: Lint (Biome)
@@ -33,14 +32,19 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Tests unitarios
-        run: pnpm test
+      - name: Tests con cobertura
+        run: pnpm test:coverage
+
+      - name: Subir coverage a Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   evals:
     name: Evals con Groq (opcional)
     needs: quality
-    # Se activa creando la variable de repositorio RUN_EVALS=true
-    # y configurando el secret GROQ_API_KEY_AGENTS
     if: ${{ vars.RUN_EVALS == 'true' }}
     runs-on: ubuntu-latest
     steps:

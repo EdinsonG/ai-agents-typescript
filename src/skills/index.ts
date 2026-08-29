@@ -1,5 +1,4 @@
 import { SkillRegistry } from '@/core/SkillRegistry.js';
-import { ANGULAR_STANDALONE_MODERN_SKILL, ANGULAR_TYPED_FORMS_SKILL } from './angularSkills.js';
 import {
   API_ERRORS_RESILIENCE_SKILL,
   DESIGN_TOKENS_STATES_SKILL,
@@ -7,11 +6,7 @@ import {
   OWASP_API_TOP10_SKILL,
   WCAG_FORMS_SKILL,
 } from './backendUxSkills.js';
-import {
-  ANGULAR_SIGNALS_SKILL,
-  CORE_WEB_VITALS_SKILL,
-  REACT_SERVER_FIRST_SKILL,
-} from './frontendSkills.js';
+import { CORE_WEB_VITALS_SKILL, REACT_SERVER_FIRST_SKILL } from './frontendSkills.js';
 import { PCI_DSS_SKILL, RICE_SKILL, WSJF_SKILL } from './productSkills.js';
 import {
   NEXT_INTL_COOKIE_SKILL,
@@ -30,9 +25,6 @@ export const skillRegistry = new SkillRegistry()
   .register(RICE_SKILL)
   .register(CORE_WEB_VITALS_SKILL)
   .register(REACT_SERVER_FIRST_SKILL)
-  .register(ANGULAR_SIGNALS_SKILL)
-  .register(ANGULAR_STANDALONE_MODERN_SKILL)
-  .register(ANGULAR_TYPED_FORMS_SKILL)
   .register(HEXAGONAL_NESTJS_SKILL)
   .register(OWASP_API_TOP10_SKILL)
   .register(API_ERRORS_RESILIENCE_SKILL)
@@ -44,9 +36,6 @@ export const skillRegistry = new SkillRegistry()
   .register(NEXT_SERVER_COOKIES_SKILL);
 
 export {
-  ANGULAR_SIGNALS_SKILL,
-  ANGULAR_STANDALONE_MODERN_SKILL,
-  ANGULAR_TYPED_FORMS_SKILL,
   API_ERRORS_RESILIENCE_SKILL,
   CORE_WEB_VITALS_SKILL,
   DESIGN_TOKENS_STATES_SKILL,

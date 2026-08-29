@@ -3,55 +3,34 @@ import {
   AGENT_IDS,
   BackendNodeAgent,
   createAgent,
-  FrontendAngularAgent,
   FrontendReactAgent,
   TechnicalPOAgent,
   UXUIAgent,
 } from '@/agents/index.js';
-import { LLMProvider } from '@/core/LLMProvider.js';
-import type { ChatMessage } from '@/types/index.js';
-
-class MockProvider extends LLMProvider {
-  public calls: ChatMessage[][] = [];
-
-  constructor(private readonly cannedResponse: string) {
-    super({ apiKey: 'test-key', model: 'mock-model' });
-  }
-
-  public async generateCompletion(messages: ChatMessage[]): Promise<string> {
-    this.calls.push(structuredClone(messages));
-    return this.cannedResponse;
-  }
-}
+import { createCapturingProvider } from './mocks/mockProvider.js';
 
 const CASES = [
   {
     name: 'TechnicalPOAgent',
-    factory: (provider: MockProvider) => new TechnicalPOAgent('key', 'model', provider),
+    factory: (provider: any) => new TechnicalPOAgent('key', 'model', provider),
     method: 'generateUserStory' as const,
     promptKeyword: 'Product Owner',
   },
   {
     name: 'FrontendReactAgent',
-    factory: (provider: MockProvider) => new FrontendReactAgent('key', 'model', provider),
+    factory: (provider: any) => new FrontendReactAgent('key', 'model', provider),
     method: 'implementFeature' as const,
     promptKeyword: 'React 19',
   },
   {
-    name: 'FrontendAngularAgent',
-    factory: (provider: MockProvider) => new FrontendAngularAgent('key', 'model', provider),
-    method: 'implementFeature' as const,
-    promptKeyword: 'Angular 19',
-  },
-  {
     name: 'BackendNodeAgent',
-    factory: (provider: MockProvider) => new BackendNodeAgent('key', 'model', provider),
+    factory: (provider: any) => new BackendNodeAgent('key', 'model', provider),
     method: 'designApi' as const,
     promptKeyword: 'NestJS',
   },
   {
     name: 'UXUIAgent',
-    factory: (provider: MockProvider) => new UXUIAgent('key', 'model', provider),
+    factory: (provider: any) => new UXUIAgent('key', 'model', provider),
     method: 'designSolution' as const,
     promptKeyword: 'WCAG',
   },
@@ -59,15 +38,15 @@ const CASES = [
 
 describe.each(CASES)('$name', ({ factory, method, promptKeyword }) => {
   it('delega en el proveedor con system + user y registra la respuesta en memoria', async () => {
-    const provider = new MockProvider('RESPUESTA_MOCK');
+    const { provider, requests } = createCapturingProvider({ fixedResponse: 'RESPUESTA_MOCK' });
     const agent = factory(provider);
 
     const result = await agent[method]('requerimiento de prueba');
 
     expect(result).toBe('RESPUESTA_MOCK');
-    expect(provider.calls).toHaveLength(1);
+    expect(requests).toHaveLength(1);
 
-    const messages = provider.calls[0];
+    const messages = requests[0];
     expect(messages[0].role).toBe('system');
     expect(messages[0].content).toContain(promptKeyword);
     expect(messages.at(-1)?.role).toBe('user');
@@ -78,15 +57,15 @@ describe.each(CASES)('$name', ({ factory, method, promptKeyword }) => {
   });
 
   it('lanza error si la entrada está vacía', async () => {
-    const provider = new MockProvider('no debe llamarse');
+    const { provider, requests } = createCapturingProvider({ fixedResponse: 'no debe llamarse' });
     const agent = factory(provider);
 
     await expect(agent[method]('   ')).rejects.toThrow();
-    expect(provider.calls).toHaveLength(0);
+    expect(requests).toHaveLength(0);
   });
 
   it('clearMemory reinicia el historial al prompt de sistema', async () => {
-    const provider = new MockProvider('ok');
+    const { provider } = createCapturingProvider({ fixedResponse: 'ok' });
     const agent = factory(provider);
 
     await agent[method]('algo');
@@ -103,12 +82,11 @@ describe('createAgent', () => {
   it('crea el agente correcto para cada id', () => {
     expect(createAgent('po', 'key')).toBeInstanceOf(TechnicalPOAgent);
     expect(createAgent('react', 'key')).toBeInstanceOf(FrontendReactAgent);
-    expect(createAgent('angular', 'key')).toBeInstanceOf(FrontendAngularAgent);
     expect(createAgent('backend', 'key')).toBeInstanceOf(BackendNodeAgent);
     expect(createAgent('uxui', 'key')).toBeInstanceOf(UXUIAgent);
   });
 
   it('expone ids estables de agentes', () => {
-    expect(AGENT_IDS).toEqual(['po', 'react', 'angular', 'backend', 'uxui']);
+    expect(AGENT_IDS).toEqual(['po', 'react', 'backend', 'uxui']);
   });
 });

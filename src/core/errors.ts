@@ -12,18 +12,27 @@ export { StructuredOutputError };
 /**
  * Error tipado producido por la capa de inferencia.
  * Permite a los consumidores reaccionar sin acoplarse al SDK de Groq.
+ * Incluye retryAfterMs para respetar el header Retry-After del servidor.
  */
 export class LLMProviderError extends Error {
   public readonly kind: LLMErrorKind;
   public readonly statusCode?: number;
   public readonly retryable: boolean;
+  public readonly retryAfterMs?: number;
 
-  constructor(message: string, kind: LLMErrorKind, statusCode?: number, cause?: unknown) {
+  constructor(
+    message: string,
+    kind: LLMErrorKind,
+    statusCode?: number,
+    cause?: unknown,
+    retryAfterMs?: number,
+  ) {
     super(`[${kind}] ${message}`);
     this.name = 'LLMProviderError';
     this.kind = kind;
     this.statusCode = statusCode;
     this.retryable = isRetryableKind(kind);
+    this.retryAfterMs = retryAfterMs;
     if (cause !== undefined) {
       this.cause = cause;
     }
@@ -39,9 +48,21 @@ export function extractStatusCode(error: unknown): number | undefined {
   return typeof status === 'number' ? status : undefined;
 }
 
+/**
+ * Extrae retryAfterMs de un error si es un ProviderHttpError con ese campo.
+ */
+export function extractRetryAfterMs(error: unknown): number | undefined {
+  if (typeof error === 'object' && error !== null && 'retryAfterMs' in error) {
+    const retryAfterMs = (error as { retryAfterMs?: unknown }).retryAfterMs;
+    return typeof retryAfterMs === 'number' ? retryAfterMs : undefined;
+  }
+  return undefined;
+}
+
 export function classifyProviderError(error: unknown): LLMProviderError {
   const statusCode = extractStatusCode(error);
   const originalMessage = error instanceof Error ? error.message : String(error);
+  const retryAfterMs = extractRetryAfterMs(error);
 
   let kind: LLMErrorKind;
   if (statusCode === undefined) {
@@ -60,5 +81,5 @@ export function classifyProviderError(error: unknown): LLMProviderError {
     kind = 'unknown';
   }
 
-  return new LLMProviderError(originalMessage, kind, statusCode, error);
+  return new LLMProviderError(originalMessage, kind, statusCode, error, retryAfterMs);
 }

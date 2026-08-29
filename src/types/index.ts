@@ -14,3 +14,4 @@ export * from './observability.js';
 export * from './orchestration.js';
 export * from './skill.js';
 export * from './testing.js';
+export * from './tool.js';
