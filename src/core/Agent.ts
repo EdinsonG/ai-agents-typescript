@@ -4,16 +4,17 @@ import type {
   ChatMessage,
   ExecuteOptions,
   JsonSchemaResponseFormat,
-  ToolContext,
   ToolCallResult,
+  ToolContext,
 } from '@/types/index.js';
 import { config } from './config.js';
 import { parseJsonLoose } from './json.js';
 import { LLMProvider } from './LLMProvider.js';
+import { getLogger } from './logger.js';
 import { SkillRegistry } from './SkillRegistry.js';
 import { StructuredOutputError } from './structuredOutputError.js';
 import { truncateMessages } from './tokens.js';
-import { ToolRegistry, executeToolCall } from './tools.js';
+import { executeToolCall, ToolRegistry } from './tools.js';
 
 const MAX_STRUCTURED_ATTEMPTS = 2;
 const MAX_TOOL_ROUNDS = 5;
@@ -125,9 +126,10 @@ export abstract class Agent {
       if (parsed.tool_call && typeof parsed.tool_call.name === 'string') {
         return {
           name: parsed.tool_call.name,
-          arguments: typeof parsed.tool_call.arguments === 'string'
-            ? parsed.tool_call.arguments
-            : JSON.stringify(parsed.tool_call.arguments ?? {}),
+          arguments:
+            typeof parsed.tool_call.arguments === 'string'
+              ? parsed.tool_call.arguments
+              : JSON.stringify(parsed.tool_call.arguments ?? {}),
         };
       }
     } catch {
@@ -153,7 +155,7 @@ export abstract class Agent {
 
       // Build messages without mutating history yet
       const messages = [...this.chatHistory, { role: 'user' as const, content: sanitized }];
-      let builtMessages = this.buildMessagesFrom(messages, options.skills);
+      const builtMessages = this.buildMessagesFrom(messages, options.skills);
 
       // Tool loop: keep executing until we get a text response or max rounds
       for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
@@ -188,7 +190,9 @@ export abstract class Agent {
       this.evictIfNeeded();
       return finalResponse;
     } catch (error) {
-      console.error(`[Agent ${this.name} Error]:`, error);
+      getLogger().error(
+        `[Agent ${this.name} Error]: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }

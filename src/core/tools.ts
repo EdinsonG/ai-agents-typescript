@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Tool, ToolContext, ToolCallResult } from '@/types/index.js';
+import type { Tool, ToolCallResult, ToolContext } from '@/types/index.js';
 
 /**
  * Registry of available tools for an agent.
@@ -45,34 +45,13 @@ export class ToolRegistry {
 }
 
 /**
- * Converts a Zod schema to a simplified JSON Schema description.
+ * Converts a Zod schema to JSON Schema using Zod v4's built-in converter.
  */
 function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
-  const def = (schema as any)._def;
-
-  // Zod v4: _def.type is the type name, _def.shape is an object (not a function)
-  if (def.type === 'object' || def.typeName === 'ZodObject') {
-    const shapeObj = typeof def.shape === 'function' ? def.shape() : def.shape;
-    const properties: Record<string, unknown> = {};
-    const required: string[] = [];
-
-    for (const [key, value] of Object.entries(shapeObj as Record<string, z.ZodType>)) {
-      const fieldDef = (value as any)._def;
-
-      properties[key] = {
-        type: fieldDef.type === 'string' || fieldDef.typeName === 'ZodString' ? 'string' : 'unknown',
-        description: fieldDef.description,
-      };
-
-      if (!value.isOptional()) {
-        required.push(key);
-      }
-    }
-
-    return { type: 'object', properties, required };
-  }
-
-  return { type: 'object' };
+  return z.toJSONSchema(schema, { target: 'draft-2020-12', io: 'input' }) as Record<
+    string,
+    unknown
+  >;
 }
 
 /**
@@ -91,7 +70,10 @@ export async function executeToolCall(
       params: {},
       result: '',
       success: false,
-      error: `Tool "${toolCall.name}" not found. Available: ${registry.getAll().map((t) => t.name).join(', ')}`,
+      error: `Tool "${toolCall.name}" not found. Available: ${registry
+        .getAll()
+        .map((t) => t.name)
+        .join(', ')}`,
     };
   }
 

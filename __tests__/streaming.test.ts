@@ -1,17 +1,22 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { LLMProvider } from '@/core/LLMProvider.js';
-import type { InferenceClient, InferenceRequest, CompletionResult, StreamChunk } from '@/types/index.js';
+import type {
+  CompletionResult,
+  InferenceClient,
+  InferenceRequest,
+  StreamChunk,
+} from '@/types/index.js';
 
 /** Fake client that supports streaming */
 function createStreamingClient(chunks: string[]): InferenceClient {
   return {
-    async complete(request: InferenceRequest): Promise<CompletionResult> {
+    async complete(_request: InferenceRequest): Promise<CompletionResult> {
       return {
         content: chunks.join(''),
         usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
       };
     },
-    async *stream(request: InferenceRequest): AsyncGenerator<StreamChunk, void, unknown> {
+    async *stream(_request: InferenceRequest): AsyncGenerator<StreamChunk, void, unknown> {
       for (const chunk of chunks) {
         yield { delta: chunk };
       }
@@ -44,7 +49,9 @@ describe('LLMProvider streaming', () => {
     });
 
     const chunks: string[] = [];
-    for await (const chunk of provider.generateCompletionStream([{ role: 'user', content: 'hi' }])) {
+    for await (const chunk of provider.generateCompletionStream([
+      { role: 'user', content: 'hi' },
+    ])) {
       chunks.push(chunk.delta);
     }
 
@@ -59,7 +66,9 @@ describe('LLMProvider streaming', () => {
     });
 
     const chunks: string[] = [];
-    for await (const chunk of provider.generateCompletionStream([{ role: 'user', content: 'hi' }])) {
+    for await (const chunk of provider.generateCompletionStream([
+      { role: 'user', content: 'hi' },
+    ])) {
       chunks.push(chunk.delta);
     }
 
@@ -74,7 +83,9 @@ describe('LLMProvider streaming', () => {
     });
 
     let lastChunk: StreamChunk | undefined;
-    for await (const chunk of provider.generateCompletionStream([{ role: 'user', content: 'hi' }])) {
+    for await (const chunk of provider.generateCompletionStream([
+      { role: 'user', content: 'hi' },
+    ])) {
       lastChunk = chunk;
     }
 

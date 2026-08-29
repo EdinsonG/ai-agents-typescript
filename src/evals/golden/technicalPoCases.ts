@@ -97,7 +97,8 @@ export const TECHNICAL_PO_CASES: EvalCase[] = [
     deterministicChecks: [
       {
         name: 'menciona herramienta de migración',
-        test: (output) => containsAny(output, ['pgloader', 'aws dms', 'flyway', 'liquibase', 'schema']),
+        test: (output) =>
+          containsAny(output, ['pgloader', 'aws dms', 'flyway', 'liquibase', 'schema']),
       },
       {
         name: 'habla de backup',
@@ -211,7 +212,8 @@ export const TECHNICAL_PO_CASES: EvalCase[] = [
     deterministicChecks: [
       {
         name: 'menciona micro-frontends',
-        test: (output) => containsAny(output, ['micro-frontend', 'micro frontend', 'module federation']),
+        test: (output) =>
+          containsAny(output, ['micro-frontend', 'micro frontend', 'module federation']),
       },
       {
         name: 'habla de equipos',

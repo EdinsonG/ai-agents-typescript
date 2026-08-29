@@ -14,6 +14,7 @@ import type {
 import { createInferenceClient } from './clients/index.js';
 import { config } from './config.js';
 import { classifyProviderError, LLMProviderError } from './errors.js';
+import { getLogger } from './logger.js';
 
 const ZERO_USAGE: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
 
@@ -72,7 +73,7 @@ export class LLMProvider {
       const elapsed = Date.now() - this.circuitOpenedAt;
       if (elapsed >= CIRCUIT_BREAKER_COOLDOWN_MS) {
         this.circuitState = 'half-open';
-        console.warn(`[LLMProvider] Circuit breaker: half-open tras ${elapsed}ms de cooldown`);
+        getLogger().warn(`[LLMProvider] Circuit breaker: half-open tras ${elapsed}ms de cooldown`);
       } else {
         throw new LLMProviderError(
           `Circuit breaker abierto. Reintentando en ${CIRCUIT_BREAKER_COOLDOWN_MS - elapsed}ms`,
@@ -86,7 +87,7 @@ export class LLMProvider {
   private recordSuccess(): void {
     this.consecutiveFailures = 0;
     if (this.circuitState !== 'closed') {
-      console.warn('[LLMProvider] Circuit breaker: cerrado tras éxito');
+      getLogger().warn('[LLMProvider] Circuit breaker: cerrado tras éxito');
     }
     this.circuitState = 'closed';
   }
@@ -104,7 +105,7 @@ export class LLMProvider {
       if (this.consecutiveFailures >= CIRCUIT_BREAKER_THRESHOLD && this.circuitState === 'closed') {
         this.circuitState = 'open';
         this.circuitOpenedAt = Date.now();
-        console.warn(
+        getLogger().warn(
           `[LLMProvider] Circuit breaker: ABIERTO tras ${this.consecutiveFailures} fallos consecutivos`,
         );
       }
@@ -142,14 +143,16 @@ export class LLMProvider {
 
         const isLastAttempt = attempt > maxRetries;
         if (!providerError.retryable || isLastAttempt) {
-          console.error(`[LLMProvider Error]: (${providerError.kind}) ${providerError.message}`);
+          getLogger().error(
+            `[LLMProvider Error]: (${providerError.kind}) ${providerError.message}`,
+          );
           throw providerError;
         }
 
         const delay = providerError.retryAfterMs
           ? Math.min(providerError.retryAfterMs, maxDelayMs)
           : computeBackoffDelay(attempt, baseDelayMs, maxDelayMs);
-        console.warn(
+        getLogger().warn(
           `[LLMProvider] Intento ${attempt}/${maxRetries} falló (${providerError.kind}). Reintentando en ${delay}ms...`,
         );
         await sleep(delay);
@@ -179,7 +182,6 @@ export class LLMProvider {
 
     for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
       const startedAt = Date.now();
-      let accumulated = '';
       let lastUsage: TokenUsage | undefined;
 
       try {
@@ -192,7 +194,6 @@ export class LLMProvider {
         });
 
         for await (const chunk of stream) {
-          accumulated += chunk.delta;
           if (chunk.usage) lastUsage = chunk.usage;
           yield chunk;
         }
@@ -213,14 +214,16 @@ export class LLMProvider {
 
         const isLastAttempt = attempt > maxRetries;
         if (!providerError.retryable || isLastAttempt) {
-          console.error(`[LLMProvider Error]: (${providerError.kind}) ${providerError.message}`);
+          getLogger().error(
+            `[LLMProvider Error]: (${providerError.kind}) ${providerError.message}`,
+          );
           throw providerError;
         }
 
         const delay = providerError.retryAfterMs
           ? Math.min(providerError.retryAfterMs, maxDelayMs)
           : computeBackoffDelay(attempt, baseDelayMs, maxDelayMs);
-        console.warn(
+        getLogger().warn(
           `[LLMProvider] Intento ${attempt}/${maxRetries} falló (${providerError.kind}). Reintentando en ${delay}ms...`,
         );
         await sleep(delay);

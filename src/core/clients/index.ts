@@ -1,3 +1,4 @@
+import { getLogger } from '@/core/logger.js';
 import type { InferenceClient, InferenceProviderKind } from '@/types/index.js';
 import { AnthropicClient } from './anthropicClient.js';
 import { OpenAICompatibleClient } from './openAICompatibleClient.js';
@@ -34,7 +35,7 @@ export function createInferenceClient(options: CreateInferenceClientOptions): In
       });
     default: {
       if (options.provider !== 'openai-compatible') {
-        console.warn(
+        getLogger().warn(
           `[InferenceClient] Provider "${options.provider}" no reconocido. ` +
             `Usando OpenAI-compatible. Proveedores válidos: anthropic, openai-compatible.`,
         );

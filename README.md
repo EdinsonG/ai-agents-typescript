@@ -2,17 +2,16 @@
 
 Núcleo modular para construir, orquestar y escalar agentes de inteligencia artificial con TypeScript. Separa la lógica de negocio de la capa de inferencia mediante arquitectura basada en **SOLID**, inyección de dependencias y un proveedor LLM con resiliencia de producción.
 
-Incluye una suite de **5 agentes expertos** especializados en roles reales de desarrollo de software, con **skills componibles**, **salidas estructuradas validadas** y un **harness de evaluación** medible.
+Incluye una suite de **4 agentes expertos** especializados en roles reales de desarrollo de software, con **skills componibles**, **salidas estructuradas validadas** y un **harness de evaluación** medible.
 
 ---
 
-## 🤖 Agentes disponibles
+## Agentes disponibles
 
 | Agente | Id | Métodos principales | Especialidad |
 |--------|-----|---------------------|--------------|
 | Technical Product Owner | `po` | `generateUserStory`, `generateUserStoryStructured` | Backlog, historias INVEST, Gherkin, priorización |
 | Frontend React Expert | `react` | `implementFeature(Structured)`, `generateUnitTests`, `reviewCode` | React 19, App Router, RSC/CC, Tailwind v4, Motion · Formularios con **React Hook Form + zod** · Estado/persistencia con **Zustand** · i18n con **next-intl por cookie** (sin prefijo de URL) · Cookies servidor vía **next/headers** |
-| Frontend Angular Expert | `angular` | `implementFeature(Structured)`, `generateUnitTests`, `reviewCode` | Angular 19+, signals, standalone + OnPush, @if/@for/@defer |
 | Backend Node Expert | `backend` | `designApi(Structured)`, `generateUnitTests`, `reviewCode` | NestJS/Express, arquitectura hexagonal, OWASP API Top 10 |
 | UX/UI Design Expert | `uxui` | `designSolution(Structured)` | Design tokens, WCAG 2.2 AA, estados de UI completos |
 
@@ -25,7 +24,7 @@ pnpm dev -- react
 
 ---
 
-## 🧩 Núcleo (`src/core/`)
+## Núcleo (`src/core/`)
 
 | Módulo | Responsabilidad |
 |--------|-----------------|
@@ -74,7 +73,7 @@ new FrontendReactAgent(apiKey, model, undefined, { baseUrl: KNOWN_BASE_URLS.open
 
 ---
 
-## 🎓 Skills componibles (`src/skills/`)
+## Skills componibles (`src/skills/`)
 
 Packs de conocimiento experto que se inyectan **solo en la petición** que los solicita:
 
@@ -84,7 +83,6 @@ Packs de conocimiento experto que se inyectan **solo en la petición** que los s
 | `wsjf`, `rice` | Priorización de backlog cuantitativa |
 | `core-web-vitals` | Presupuestos LCP/INP/CLS en React/Next |
 | `react-server-first` | Disciplina RSC vs Client Components, Server Actions |
-| `angular-signals` | Patrones idiomáticos de signals |
 | `hexagonal-nestjs` | Puertos/adaptadores con dominio puro |
 | `owasp-api-top10` | Checklist de mitigaciones por amenaza |
 | `wcag-forms` | Formularios accesibles verificables |
@@ -101,7 +99,6 @@ Las skills viven en un **registro global centralizado** compartido por todos los
 | Agente | Skills auto-activadas |
 |--------|----------------------|
 | Frontend React | `react-hook-form-zod`, `zustand-persist`, `next-intl-cookie`, `next-server-cookies` |
-| Frontend Angular | `angular-standalone-modern`, `angular-signals`, `angular-typed-forms` |
 | Backend Node | `hexagonal-nestjs`, `owasp-api-top10`, `api-errors-resilience` |
 | UX/UI | `wcag-forms`, `design-tokens-states` |
 | Technical PO | Sin defaults: sus skills (`wsjf`, `rice`, `pci-dss`) son situacionales y se piden explícitas |
@@ -114,7 +111,7 @@ Una skill desconocida lanza error listando las disponibles. Agregar una nueva = 
 
 ---
 
-## 📦 Salidas estructuradas
+## Salidas estructuradas
 
 Cada agente expone métodos `*Structured` que devuelven objetos TypeScript validados con zod (no texto libre):
 
@@ -131,9 +128,9 @@ Cómo funciona:
 
 ---
 
-## 🧪 Generación de pruebas unitarias
+## Generación de pruebas unitarias
 
-Los agentes de **React**, **Angular** y **Backend** generan suites de pruebas completas como entregable estructurado (`UnitTestSuite`): archivos de test ejecutables, librerías requeridas, comandos para correrlos y foco de cobertura.
+Los agentes de **React** y **Backend** generan suites de pruebas completas como entregable estructurado (`UnitTestSuite`): archivos de test ejecutables, librerías requeridas, comandos para correrlos y foco de cobertura.
 
 ```ts
 const suite = await reactAgent.generateUnitTests('Componente TaskCard con drag & drop');
@@ -142,11 +139,11 @@ suite.testFiles[0].code;    // código completo listo para guardar y ejecutar
 suite.runCommands;          // ['pnpm vitest run src/components/TaskCard.test.tsx']
 ```
 
-Stack por especialidad: React (Vitest + Testing Library), Angular (Vitest/Jest + TestBed + HttpTestingController), Backend (Vitest/Jest + Supertest contra app factory, con casos 400/404/409).
+Stack por especialidad: React (Vitest + Testing Library), Backend (Vitest/Jest + Supertest contra app factory, con casos 400/404/409).
 
 ---
 
-## 🔁 Autocrítica opt-in (`src/critique/`)
+## Autocrítica opt-in (`src/critique/`)
 
 `CritiqueRunner` reutiliza el `LLMJudge` para el bucle **generar → juzgar → revisar**: genera con el agente, puntúa la salida contra tu rúbrica y, si queda bajo el umbral (default 80%), pide una revisión con el feedback de los veredictos. Devuelve siempre la mejor de las dos salidas.
 
@@ -169,7 +166,7 @@ Costo: hasta 2 llamadas del agente + 2 del juez por ejecución — úsalo en ent
 
 ---
 
-## 📊 Evaluación de calidad (`src/evals/`)
+## Evaluación de calidad (`src/evals/`)
 
 Harness de evals reproducible: casos dorados + juez LLM (temperatura 0, salida validada por esquema) + checks deterministas gratuitos.
 
@@ -179,13 +176,13 @@ pnpm evals
 ```
 
 - Rúbricas con criterios verificables (ej. detecta si el agente infla estimaciones o da seguridad genérica).
-- **Las 5 suites de agentes tienen cobertura**: PO (2 casos), React, Angular, Backend y UX/UI.
+- **Las 4 suites de agentes tienen cobertura**: PO, React, Backend y UX/UI.
 - Reporte por caso con puntuación 0-100%, veredictos por criterio y justificaciones.
 - Nuevos casos: agregar un objeto `EvalCase` en `src/evals/golden/`.
 
 ---
 
-## 🔗 Orquestación multi-agente (`src/orchestration/`)
+## Orquestación multi-agente (`src/orchestration/`)
 
 `ProductDeliveryPipeline` encadena la suite completa: un requerimiento entra y sale el paquete de entregables de todos los roles.
 
@@ -220,7 +217,7 @@ pnpm dev -- pipeline "Checkout con pago con tarjeta"
 
 ---
 
-## 🏗️ Estructura del proyecto
+## Estructura del proyecto
 
 ```
 src/
@@ -228,22 +225,19 @@ src/
 │   ├── index.ts              # Barrel + fábrica createAgent(id)
 │   ├── TechnicalPO/          # prompt · schema · agent
 │   ├── FrontendReact/
-│   ├── FrontendAngular/
 │   ├── BackendNode/
 │   └── UXUI/
 ├── core/                     # Agent · LLMProvider · Skills · tokens · errors
-├── skills/                   # 9 skills expertas + registro global
-├── types/                     # Contratos centralizados por dominio + barrel index.ts
-├── orchestration/             # Pipeline PO → UX → Frontend/Backend + briefs
-├── evals/                     # judge · runner · reporter · golden cases · cli
-├── index.ts                   # Demo CLI multi-agente y pipeline
-__tests__/                    # 67 tests unitarios (proveedor mockeado)
-.github/workflows/ci.yml      # Biome · Build · Tests (+ Evals opcionales)
+├── skills/                   # Skills expertas + registro global
+├── types/                    # Contratos centralizados por dominio + barrel index.ts
+├── orchestration/            # Pipeline PO → UX → Frontend/Backend + briefs
+├── evals/                    # judge · runner · reporter · golden cases · cli
+├── cli.ts                    # CLI que lee requirements.md
+__tests__/                    # Tests unitarios (proveedores mockeados)
+.github/workflows/ci.yml     # Biome · Build · Tests (+ Evals opcionales)
 ```
 
-**Agregar un sexto agente:** carpeta con `prompt.ts` + `schema.ts` + clase que extienda `Agent`, y una entrada en `src/agents/index.ts`.
-
-**Contratos de tipos:** todos centralizados en `src/types/` por dominio (`agent`, `llm`, `skill`, `evals`, `testing`, `deliverables`, `orchestration`) y exportados desde `src/types/index.ts`. Importa siempre desde ahí:
+**Contratos de tipos:** todos centralizados en `src/types/` por dominio (`agent`, `llm`, `skill`, `tool`, `evals`, `testing`, `deliverables`, `orchestration`, `observability`, `critique`) y exportados desde `src/types/index.ts`. Importa siempre desde ahí:
 
 ```ts
 import type { ChatMessage, Skill, EvalCase, UserStoryDeliverable } from '@/types/index.js';
@@ -251,7 +245,7 @@ import type { ChatMessage, Skill, EvalCase, UserStoryDeliverable } from '@/types
 
 ---
 
-## 🛠️ Tecnologías
+## Tecnologías
 
 - **Node.js 20+** — Runtime ESM nativo (`type: module`)
 - **pnpm** — Gestor de paquetes rápido y eficiente en disco
@@ -263,7 +257,7 @@ import type { ChatMessage, Skill, EvalCase, UserStoryDeliverable } from '@/types
 
 ---
 
-## 🌿 GitFlow y protección de ramas
+## GitFlow y protección de ramas
 
 | Rama | Rol | Protección |
 |------|-----|------------|
@@ -284,7 +278,7 @@ git tag v1.x.x && git push origin v1.x.x    # sobre main tras el merge
 
 ---
 
-## 🚀 Instalación rápida
+## Instalación rápida
 
 Requiere pnpm (incluido con Node vía `corepack enable pnpm`, o instálalo con `npm i -g pnpm`).
 
@@ -302,7 +296,7 @@ GROQ_API_KEY_AGENTS=your_groq_api_key_here
 
 ---
 
-## 💻 Comandos disponibles
+## Comandos disponibles
 
 | Comando | Descripción |
 |---------|-------------|
@@ -311,12 +305,12 @@ GROQ_API_KEY_AGENTS=your_groq_api_key_here
 | `pnpm build` | Genera JavaScript en `dist/` |
 | `pnpm start` | Ejecuta compilación existente |
 | `pnpm test` / `pnpm test:watch` | Pruebas unitarias (sin red) |
-| `pnpm evals` | Suites doradas de los 5 agentes contra Groq real (consume API) |
+| `pnpm evals` | Suites doradas de los 4 agentes contra Groq real (consume API) |
 | `pnpm lint` / `pnpm lint:fix` / `pnpm format` | Calidad de código con Biome |
 
 ---
 
-## 🔄 Integración continua
+## Integración continua
 
 El workflow `.github/workflows/ci.yml` ejecuta en cada push/PR a `main`:
 
@@ -326,10 +320,10 @@ El workflow `.github/workflows/ci.yml` ejecuta en cada push/PR a `main`:
 
 ---
 
-## 📌 Mejores prácticas
+## Mejores prácticas
 
-- ✅ Prompt y lógica de cada agente separados en su carpeta
-- ✅ Preferir los métodos `*Structured` cuando el resultado lo consume otro código
-- ✅ Activar skills solo donde aporten valor (menos tokens, respuestas más enfocadas)
-- ✅ Añadir casos dorados al modificar prompts/skills y comparar con `pnpm evals`
-- ✅ Nunca commitear `.env`; usar `.env.example` como plantilla
+- Prompt y lógica de cada agente separados en su carpeta
+- Preferir los métodos `*Structured` cuando el resultado lo consume otro código
+- Activar skills solo donde aporten valor (menos tokens, respuestas más enfocadas)
+- Añadir casos dorados al modificar prompts/skills y comparar con `pnpm evals`
+- Nunca commitear `.env`; usar `.env.example` como plantilla

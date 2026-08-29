@@ -2,7 +2,7 @@
   "name": "ai-agents-core",
   "version": "1.0.0",
   "type": "module",
-  "description": "Core para creación de agentes de IA con TypeScript y Groq",
+  "description": "Core for building, orchestrating and scaling AI agents with TypeScript. Multi-provider LLM support, structured output, tool calling, streaming, and multi-agent pipelines.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -40,10 +40,25 @@
     "llm",
     "typescript",
     "groq",
-    "pipeline"
+    "pipeline",
+    "structured-output",
+    "tool-calling",
+    "streaming",
+    "multi-agent",
+    "openai",
+    "anthropic"
   ],
-  "author": "",
+  "author": "EdinsonG",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EdinsonG/ai-agents-typescript.git"
+  },
+  "homepage": "https://github.com/EdinsonG/ai-agents-typescript#readme",
+  "bugs": {
+    "url": "https://github.com/EdinsonG/ai-agents-typescript/issues"
+  },
+  "sideEffects": false,
   "dependencies": {
     "dotenv": "^17.4.2",
     "zod": "^4.4.3"

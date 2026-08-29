@@ -75,7 +75,8 @@ export const BACKEND_NODE_CASES: EvalCase[] = [
       },
       {
         name: 'describe manejo de errores',
-        test: (output) => containsAny(output, ['retry', 'reintento', 'dead-letter', 'fallo', 'error']),
+        test: (output) =>
+          containsAny(output, ['retry', 'reintento', 'dead-letter', 'fallo', 'error']),
       },
     ],
   },
@@ -113,7 +114,8 @@ export const BACKEND_NODE_CASES: EvalCase[] = [
       },
       {
         name: 'menciona subscriptions',
-        test: (output) => containsAny(output, ['subscription', 'subscribe', 'onMessage', 'real-time']),
+        test: (output) =>
+          containsAny(output, ['subscription', 'subscribe', 'onMessage', 'real-time']),
       },
     ],
   },
@@ -147,7 +149,8 @@ export const BACKEND_NODE_CASES: EvalCase[] = [
     deterministicChecks: [
       {
         name: 'enumera microservicios',
-        test: (output) => containsAny(output, ['catálogo', 'catalogo', 'carrito', 'pedido', 'pago']),
+        test: (output) =>
+          containsAny(output, ['catálogo', 'catalogo', 'carrito', 'pedido', 'pago']),
       },
       {
         name: 'menciona gateway',
@@ -178,8 +181,7 @@ export const BACKEND_NODE_CASES: EvalCase[] = [
       },
       {
         id: 'metricas-cache',
-        requirement:
-          'Mide hit rate, miss rate y latencia del cache para monitorear efectividad.',
+        requirement: 'Mide hit rate, miss rate y latencia del cache para monitorear efectividad.',
       },
     ],
     deterministicChecks: [

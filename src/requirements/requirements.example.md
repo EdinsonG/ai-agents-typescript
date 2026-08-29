@@ -41,21 +41,6 @@ Stack: React 18+, TypeScript estricto, TailwindCSS, React Query para server stat
 
 ---
 
-## angular
-
-Módulo de administración para gerentes de cadena:
-
-- Dashboard con métricas agregadas de todas las sucursales
-- Gestión de usuarios: crear, editar, asignar roles y permisos
-- Configuración de alertas de stock mínimo por categoría y sucursal
-- Importación masiva de productos desde CSV/Excel
-- Auditoría: historial de acciones con filtros por fecha, usuario y tipo
-
-Stack: Angular 17+, standalone components, signals, OnPush change detection,
-Reactive Forms tipados, Angular Material.
-
----
-
 ## backend
 
 API REST para el sistema de inventario:
@@ -101,9 +86,8 @@ Rediseño del módulo de inventario:
 ## pipeline
 
 Sistema completo de gestión de inventarios para cadena de tiendas de ropa.
-Incluye backend API, dashboard React, módulo administrativo Angular y
-diseño UX de todos los módulos. Ver secciones individuales para detalles
-específicos de cada capa.
+Incluye backend API, dashboard React y diseño UX de todos los módulos.
+Ver secciones individuales para detalles específicos de cada capa.
 
 Prioridad: MVP en 6 semanas con funcionalidad core (CRUD + stock + reportes básicos).
 Fase 2: notificaciones, importación masiva, analytics avanzado.

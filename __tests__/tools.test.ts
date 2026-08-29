@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { ToolRegistry, executeToolCall } from '@/core/tools.js';
 import type { Tool } from '@/core/tools.js';
+import { executeToolCall, ToolRegistry } from '@/core/tools.js';
 
 describe('ToolRegistry', () => {
   it('registers and retrieves a tool', () => {
@@ -82,11 +82,11 @@ describe('executeToolCall', () => {
   it('returns error for unknown tool', async () => {
     const registry = new ToolRegistry();
 
-    const result = await executeToolCall(
-      { name: 'unknown', arguments: '{}' },
-      registry,
-      { agentName: 'test', userInput: 'test', history: [] },
-    );
+    const result = await executeToolCall({ name: 'unknown', arguments: '{}' }, registry, {
+      agentName: 'test',
+      userInput: 'test',
+      history: [],
+    });
 
     expect(result.success).toBe(false);
     expect(result.error).toContain('not found');
@@ -101,11 +101,11 @@ describe('executeToolCall', () => {
       execute: async () => 'ok',
     });
 
-    const result = await executeToolCall(
-      { name: 'noop', arguments: 'not-json' },
-      registry,
-      { agentName: 'test', userInput: 'test', history: [] },
-    );
+    const result = await executeToolCall({ name: 'noop', arguments: 'not-json' }, registry, {
+      agentName: 'test',
+      userInput: 'test',
+      history: [],
+    });
 
     expect(result.success).toBe(false);
   });
@@ -119,11 +119,11 @@ describe('executeToolCall', () => {
       execute: async () => 'ok',
     });
 
-    const result = await executeToolCall(
-      { name: 'required_field', arguments: '{}' },
-      registry,
-      { agentName: 'test', userInput: 'test', history: [] },
-    );
+    const result = await executeToolCall({ name: 'required_field', arguments: '{}' }, registry, {
+      agentName: 'test',
+      userInput: 'test',
+      history: [],
+    });
 
     expect(result.success).toBe(false);
   });
@@ -139,11 +139,11 @@ describe('executeToolCall', () => {
       },
     });
 
-    const result = await executeToolCall(
-      { name: 'fail', arguments: '{}' },
-      registry,
-      { agentName: 'test', userInput: 'test', history: [] },
-    );
+    const result = await executeToolCall({ name: 'fail', arguments: '{}' }, registry, {
+      agentName: 'test',
+      userInput: 'test',
+      history: [],
+    });
 
     expect(result.success).toBe(false);
     expect(result.error).toBe('boom');

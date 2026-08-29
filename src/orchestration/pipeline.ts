@@ -3,6 +3,7 @@ import type { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAge
 import type { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
 import type { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
 import { config } from '@/core/config.js';
+import { getLogger } from '@/core/logger.js';
 import type { DeliveryPackage, PipelineOptions, StageTimings } from '@/types/index.js';
 import { buildBackendBrief, buildFrontendBrief, buildUxBrief } from './briefs.js';
 
@@ -63,12 +64,12 @@ export class ProductDeliveryPipeline {
     const api = backendResult.status === 'fulfilled' ? backendResult.value : undefined;
 
     if (frontendResult.status === 'rejected') {
-      console.error(
+      getLogger().error(
         `[Pipeline] Frontend falló: ${frontendResult.reason?.message ?? frontendResult.reason}`,
       );
     }
     if (backendResult.status === 'rejected') {
-      console.error(
+      getLogger().error(
         `[Pipeline] Backend falló: ${backendResult.reason?.message ?? backendResult.reason}`,
       );
     }

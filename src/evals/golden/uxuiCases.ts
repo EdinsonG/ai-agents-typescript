@@ -140,8 +140,7 @@ export const UXUI_CASES: EvalCase[] = [
       },
       {
         id: 'preferencias-de-usuario',
-        requirement:
-          'El usuario puede personalizar qué notificaciones recibe y en qué canal.',
+        requirement: 'El usuario puede personalizar qué notificaciones recibe y en qué canal.',
       },
     ],
     deterministicChecks: [
@@ -151,7 +150,8 @@ export const UXUI_CASES: EvalCase[] = [
       },
       {
         name: 'habla de preferencias',
-        test: (output) => containsAny(output, ['preferencia', 'preference', 'configuración', 'setting']),
+        test: (output) =>
+          containsAny(output, ['preferencia', 'preference', 'configuración', 'setting']),
       },
     ],
   },

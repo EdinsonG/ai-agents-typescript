@@ -1,8 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { z } from 'zod';
+import { describe, expect, it } from 'vitest';
 import { Agent } from '@/core/Agent.js';
 import { LLMProvider } from '@/core/LLMProvider.js';
-import type { ChatMessage, InferenceClient, InferenceRequest, CompletionResult } from '@/types/index.js';
+import type { ChatMessage, CompletionResult, InferenceClient } from '@/types/index.js';
 
 /** Minimal fake provider for testing */
 function createFakeClient(response = 'test response'): InferenceClient {

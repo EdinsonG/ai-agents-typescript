@@ -80,8 +80,7 @@ export const FRONTEND_REACT_CASES: EvalCase[] = [
       },
       {
         id: 'estados-vacios',
-        requirement:
-          'Muestra un estado vacío amigable cuando no hay resultados de búsqueda.',
+        requirement: 'Muestra un estado vacío amigable cuando no hay resultados de búsqueda.',
       },
     ],
   },
@@ -103,8 +102,7 @@ export const FRONTEND_REACT_CASES: EvalCase[] = [
       },
       {
         id: 'refresh-token-automático',
-        requirement:
-          'Maneja refresh tokens automáticamente antes de que expire el access token.',
+        requirement: 'Maneja refresh tokens automáticamente antes de que expire el access token.',
       },
       {
         id: 'manejo-de-errores',
@@ -131,8 +129,7 @@ export const FRONTEND_REACT_CASES: EvalCase[] = [
       },
       {
         id: 'skeleton-loading',
-        requirement:
-          'Muestra skeleton loaders mientras los datos de los gráficos se cargan.',
+        requirement: 'Muestra skeleton loaders mientras los datos de los gráficos se cargan.',
       },
       {
         id: 'tooltip-interactivo',
