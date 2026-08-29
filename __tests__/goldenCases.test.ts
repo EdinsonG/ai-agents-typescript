@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { BACKEND_NODE_CASES } from '@/evals/golden/backendNodeCases.js';
-import { FRONTEND_ANGULAR_CASES } from '@/evals/golden/frontendAngularCases.js';
 import { FRONTEND_REACT_CASES } from '@/evals/golden/frontendReactCases.js';
 import { TECHNICAL_PO_CASES } from '@/evals/golden/technicalPoCases.js';
 import { UXUI_CASES } from '@/evals/golden/uxuiCases.js';
@@ -9,7 +8,6 @@ import type { EvalCase } from '@/types/index.js';
 const ALL_SUITES: Array<[string, EvalCase[]]> = [
   ['TechnicalPO', TECHNICAL_PO_CASES],
   ['FrontendReact', FRONTEND_REACT_CASES],
-  ['FrontendAngular', FRONTEND_ANGULAR_CASES],
   ['BackendNode', BACKEND_NODE_CASES],
   ['UXUI', UXUI_CASES],
 ];
