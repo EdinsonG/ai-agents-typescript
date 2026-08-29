@@ -1,3 +1,5 @@
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { config } from '@/core/config.js';
 import type {
   AgentUsageSummary,
@@ -100,6 +102,43 @@ export class ObservabilityCollector {
   /** Exporta los registros en formato JSON Lines (un objeto por línea). */
   public toJSONL(): string {
     return this.records.map((record) => JSON.stringify(record)).join('\n');
+  }
+
+  /**
+   * Saves records to a JSONL file.
+   */
+  public saveToFile(filePath: string): void {
+    const dir = dirname(filePath);
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+    }
+    writeFileSync(filePath, this.toJSONL(), 'utf-8');
+  }
+
+  /**
+   * Loads records from a JSONL file, appending to existing records.
+   */
+  public loadFromFile(filePath: string): void {
+    if (!existsSync(filePath)) return;
+
+    const content = readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n').filter((line) => line.trim());
+
+    for (const line of lines) {
+      try {
+        const record = JSON.parse(line) as LLMCallRecord;
+        this.record(record);
+      } catch {
+        // Skip malformed lines
+      }
+    }
+  }
+
+  /**
+   * Exports the summary as a JSON object.
+   */
+  public toJSON(): ObservabilitySummary {
+    return this.summary();
   }
 
   private estimateRecordCost(record: LLMCallRecord): number {

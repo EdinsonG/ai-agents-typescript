@@ -1,0 +1,10 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "name": "ai-agents-core",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "readme": "README.md"
+}
