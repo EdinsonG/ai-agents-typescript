@@ -8,6 +8,7 @@ import type {
   LLMErrorKind,
   LLMProviderConfig,
   ResilienceOptions,
+  StreamChunk,
   TokenUsage,
 } from '@/types/index.js';
 import { createInferenceClient } from './clients/index.js';
@@ -156,6 +157,75 @@ export class LLMProvider {
     }
 
     throw new LLMProviderError('Bucle de reintentos terminado inesperadamente', 'unknown');
+  }
+
+  /**
+   * Streaming version of generateCompletion.
+   * Yields partial text chunks as they arrive from the LLM.
+   * Falls back to generateCompletion if the client doesn't support streaming.
+   */
+  public async *generateCompletionStream(
+    messages: ChatMessage[],
+    options: GenerateCompletionOptions = {},
+  ): AsyncGenerator<StreamChunk, void, unknown> {
+    // If client doesn't support streaming, fall back to regular completion
+    if (!this.client.stream) {
+      const full = await this.generateCompletion(messages, options);
+      yield { delta: full, usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 } };
+      return;
+    }
+
+    const { maxRetries, baseDelayMs, maxDelayMs } = this.resilience;
+
+    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+      const startedAt = Date.now();
+      let accumulated = '';
+      let lastUsage: TokenUsage | undefined;
+
+      try {
+        const stream = this.client.stream({
+          model: this.model,
+          messages,
+          temperature: this.temperature,
+          maxTokens: this.maxTokens,
+          ...(options.responseFormat ? { responseFormat: options.responseFormat } : {}),
+        });
+
+        for await (const chunk of stream) {
+          accumulated += chunk.delta;
+          if (chunk.usage) lastUsage = chunk.usage;
+          yield chunk;
+        }
+
+        const usage = lastUsage ?? {
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+        };
+        this.record('text', true, Date.now() - startedAt, usage);
+        this.recordSuccess();
+        return;
+      } catch (error) {
+        const providerError =
+          error instanceof LLMProviderError ? error : classifyProviderError(error);
+        this.record('text', false, Date.now() - startedAt, ZERO_USAGE, providerError.kind);
+        this.recordFailure(providerError.kind);
+
+        const isLastAttempt = attempt > maxRetries;
+        if (!providerError.retryable || isLastAttempt) {
+          console.error(`[LLMProvider Error]: (${providerError.kind}) ${providerError.message}`);
+          throw providerError;
+        }
+
+        const delay = providerError.retryAfterMs
+          ? Math.min(providerError.retryAfterMs, maxDelayMs)
+          : computeBackoffDelay(attempt, baseDelayMs, maxDelayMs);
+        console.warn(
+          `[LLMProvider] Intento ${attempt}/${maxRetries} falló (${providerError.kind}). Reintentando en ${delay}ms...`,
+        );
+        await sleep(delay);
+      }
+    }
   }
 
   protected async attemptCompletion(

@@ -1,100 +1,98 @@
-import 'dotenv/config';
-import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
-import { FrontendReactAgent } from '@/agents/FrontendReact/FrontendReactAgent.js';
-import { AGENT_IDS, type AgentId, createAgent } from '@/agents/index.js';
-import { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
-import { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
-import { globalCollector } from '@/observability/collector.js';
-import { formatUsageSummary } from '@/observability/reporter.js';
-import { ProductDeliveryPipeline } from '@/orchestration/index.js';
+/**
+ * ai-agents-core — Library entry point.
+ *
+ * Usage:
+ *   import { Agent, createAgent, ProductDeliveryPipeline } from 'ai-agents-core';
+ */
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY_AGENTS;
+// ── Core ──────────────────────────────────────────────────────────────
+export { Agent } from '@/core/Agent.js';
+export { LLMProvider } from '@/core/LLMProvider.js';
+export { SkillRegistry, mergeSkillOptions } from '@/core/SkillRegistry.js';
+export { ToolRegistry, executeToolCall } from '@/core/tools.js';
+export { config, overrideConfig, type AppConfig } from '@/core/config.js';
+export {
+  LLMProviderError,
+  StructuredOutputError,
+  classifyProviderError,
+  isRetryableKind,
+} from '@/core/errors.js';
+export { parseJsonLoose } from '@/core/json.js';
+export { estimateTokens, estimateMessagesTokens, truncateMessages, DEFAULT_MAX_CONTEXT_TOKENS } from '@/core/tokens.js';
 
-const DEFAULT_REQUESTS: Record<AgentId, string> = {
-  po: 'Necesito un módulo de autenticación con user y password, además de soporte para OAuth2 que soporte Google y GitHub, con manejo seguro de JWT y refresh tokens, tiempo de sesión almacenado en redis con expiración de 15 minutos, y que se implemente siguiendo las mejores prácticas de seguridad para prevenir ataques comunes como XSS, CSRF e inyecciones SQL.',
-  react:
-    'Un dashboard Kanban con columnas arrastrables (drag & drop), filtros por estado y animaciones fluidas entre movimientos de tarjetas.',
-  angular:
-    'Una tabla administrativa con paginación server-side, ordenamiento por columna, búsqueda con debounce y edición en línea de usuarios.',
-  backend:
-    'API REST para gestión de suscripciones con cobros recurrentes: planes, ciclos de facturación, webhooks de pasarela de pago con idempotencia y reintentos.',
-  uxui: 'Rediseño del checkout de un e-commerce: actualmente 5 pasos y el 60% abandona el carrito; buscamos reducir fricción y abandono.',
-};
+// ── Clients ───────────────────────────────────────────────────────────
+export { createInferenceClient, KNOWN_BASE_URLS } from '@/core/clients/index.js';
+export { OpenAICompatibleClient } from '@/core/clients/openAICompatibleClient.js';
+export { AnthropicClient } from '@/core/clients/anthropicClient.js';
+export { ProviderHttpError } from '@/core/clients/httpError.js';
 
-const PIPELINE_DEFAULT =
-  'Módulo de checkout con pago con tarjeta: carrito, datos de envío, pasarela de pago segura y confirmación por email.';
+// ── Agents ────────────────────────────────────────────────────────────
+export { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
+export { FrontendReactAgent, DEFAULT_REACT_STACK_SKILLS } from '@/agents/FrontendReact/FrontendReactAgent.js';
+export { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
+export { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
+export { AGENT_IDS, createAgent, type AgentId } from '@/agents/index.js';
 
-function printUsage(): void {
-  console.log(`Uso: node dist/index.js <agente|pipeline> [requerimiento]
+// ── Skills ────────────────────────────────────────────────────────────
+export { skillRegistry } from '@/skills/index.js';
 
-Agentes disponibles: ${AGENT_IDS.join(', ')}, pipeline (PO → UX → Frontend + Backend)
+// ── Orchestration ─────────────────────────────────────────────────────
+export { ProductDeliveryPipeline } from '@/orchestration/pipeline.js';
+export { buildUxBrief, buildFrontendBrief, buildBackendBrief } from '@/orchestration/briefs.js';
 
-Ejemplos:
-  node dist/index.js po
-  node dist/index.js react "Tabla de productos con filtros y paginación"
-  node dist/index.js pipeline "Checkout con pago con tarjeta"`);
-}
+// ── Evals ─────────────────────────────────────────────────────────────
+export { EvalRunner } from '@/evals/runner.js';
+export { LLMJudge } from '@/evals/judge.js';
+export { computeScorePercent, toVerdictList } from '@/evals/scoring.js';
+export { formatSuiteReport, formatSuiteReportJson } from '@/evals/reporter.js';
 
-async function runPipeline(requirement: string, apiKey: string): Promise<void> {
-  const pipeline = new ProductDeliveryPipeline(
-    new TechnicalPOAgent(apiKey),
-    new UXUIAgent(apiKey),
-    new FrontendReactAgent(apiKey),
-    new BackendNodeAgent(apiKey),
-  );
+// ── Critique ──────────────────────────────────────────────────────────
+export { CritiqueRunner } from '@/critique/runner.js';
 
-  console.log('🚀 [Pipeline] PO → UX/UI → Frontend + Backend...');
+// ── Observability ─────────────────────────────────────────────────────
+export { ObservabilityCollector, globalCollector, DEFAULT_COST_RATES } from '@/observability/collector.js';
+export { formatUsageSummary } from '@/observability/reporter.js';
 
-  const delivery = await pipeline.run(requirement);
-
-  console.log('\n======================= PAQUETE DE ENTREGABLES =======================\n');
-  console.log(JSON.stringify(delivery, null, 2));
-  console.log('\n======================================================================');
-  console.log(
-    `⏱️  Etapas: ${Object.entries(delivery.stageTimingsMs)
-      .map(([stage, ms]) => `${stage} ${ms}ms`)
-      .join(' · ')}`,
-  );
-}
-
-async function runAgent(agentId: AgentId, request: string, apiKey: string): Promise<void> {
-  const agent = createAgent(agentId, apiKey);
-  console.log(`🚀 [Core] Ejecutando agente: ${agent.displayName}...`);
-
-  const response = await agent.execute(request);
-  console.log('\n======================= ENTREGABLE GENERADO =======================\n');
-  console.log(response);
-  console.log('\n==================================================================');
-}
-
-async function main() {
-  const [agentArg, ...requestArgs] = process.argv.slice(2);
-  const target = agentArg ?? 'po';
-
-  if (!GROQ_API_KEY) {
-    console.error('❌ Error: La variable de entorno GROQ_API_KEY_AGENTS no está configurada.');
-    return;
-  }
-
-  const request = requestArgs.join(' ').trim();
-
-  try {
-    if (target === 'pipeline') {
-      await runPipeline(request || PIPELINE_DEFAULT, GROQ_API_KEY);
-    } else {
-      const agentId = target as AgentId;
-      if (!AGENT_IDS.includes(agentId)) {
-        console.error(`❌ Agente desconocido: "${target}"`);
-        printUsage();
-        return;
-      }
-      await runAgent(agentId, request || DEFAULT_REQUESTS[agentId], GROQ_API_KEY);
-    }
-
-    console.log(`\n${formatUsageSummary(globalCollector.summary())}`);
-  } catch (error) {
-    console.error('❌ Error durante la ejecución:', error);
-  }
-}
-
-main();
+// ── Types (re-exports) ────────────────────────────────────────────────
+export type {
+  AgentRole,
+  ChatMessage,
+  AgentConfig,
+  AgentInferenceOptions,
+  ExecuteOptions,
+} from '@/types/agent.js';
+export type {
+  LLMProviderConfig,
+  InferenceProviderKind,
+  TokenUsage,
+  CompletionResult,
+  InferenceRequest,
+  InferenceClient,
+  StreamChunk,
+  GenerateCompletionOptions,
+  JsonSchemaResponseFormat,
+  LLMErrorKind,
+} from '@/types/llm.js';
+export type { Skill } from '@/types/skill.js';
+export type {
+  EvalRubricCriterion,
+  DeterministicCheck,
+  EvalCase,
+  CriterionVerdict,
+  CaseEvalResult,
+  EvalSuiteResult,
+  EvalExecutor,
+} from '@/types/evals.js';
+export type {
+  PipelineOptions,
+  StageTimings,
+  DeliveryPackage,
+} from '@/types/orchestration.js';
+export type {
+  LLMCallRecord,
+  AgentUsageSummary,
+  ObservabilitySummary,
+  CostRates,
+} from '@/types/observability.js';
+export type { CritiqueOptions, CritiqueResult } from '@/types/critique.js';
+export type { Tool, ToolContext, ToolCallResult } from '@/types/tool.js';

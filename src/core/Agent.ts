@@ -4,6 +4,8 @@ import type {
   ChatMessage,
   ExecuteOptions,
   JsonSchemaResponseFormat,
+  ToolContext,
+  ToolCallResult,
 } from '@/types/index.js';
 import { config } from './config.js';
 import { parseJsonLoose } from './json.js';
@@ -11,8 +13,10 @@ import { LLMProvider } from './LLMProvider.js';
 import { SkillRegistry } from './SkillRegistry.js';
 import { StructuredOutputError } from './structuredOutputError.js';
 import { truncateMessages } from './tokens.js';
+import { ToolRegistry, executeToolCall } from './tools.js';
 
 const MAX_STRUCTURED_ATTEMPTS = 2;
+const MAX_TOOL_ROUNDS = 5;
 
 /** Delimitador para proteger contra prompt injection. */
 const INPUT_DELIMITER_START = '<usuario_input>';
@@ -36,6 +40,7 @@ export abstract class Agent {
   protected systemPrompt: string;
   protected provider: LLMProvider;
   protected skillRegistry: SkillRegistry;
+  protected toolRegistry: ToolRegistry;
   protected maxContextTokens: number;
   protected maxInputLength: number;
   protected chatHistory: ChatMessage[] = [];
@@ -44,6 +49,7 @@ export abstract class Agent {
     agentConfig: AgentConfig,
     provider?: LLMProvider,
     skillRegistry: SkillRegistry = new SkillRegistry(),
+    toolRegistry: ToolRegistry = new ToolRegistry(),
   ) {
     this.name = agentConfig.name;
     this.systemPrompt = agentConfig.systemPrompt;
@@ -63,11 +69,40 @@ export abstract class Agent {
       });
 
     this.skillRegistry = skillRegistry;
-    this.chatHistory.push({ role: 'system', content: this.systemPrompt });
+    this.toolRegistry = toolRegistry;
+    this.chatHistory.push({ role: 'system', content: this.buildSystemPromptWithTools() });
   }
 
   public get displayName(): string {
     return this.name;
+  }
+
+  /**
+   * Returns the tool registry for this agent (to register tools after construction).
+   */
+  public get tools(): ToolRegistry {
+    return this.toolRegistry;
+  }
+
+  /**
+   * Builds the system prompt including tool schemas if tools are registered.
+   */
+  private buildSystemPromptWithTools(): string {
+    const toolSchemas = this.toolRegistry.buildToolSchemas();
+    if (!toolSchemas) return this.systemPrompt;
+
+    return [
+      this.systemPrompt,
+      '',
+      '=== HERRAMIENTAS DISPONIBLES ===',
+      'Puedes invocar herramientas para ejecutar acciones externas.',
+      'Cuando necesites usar una herramienta, responde con un JSON con el siguiente formato:',
+      '{"tool_call": {"name": "nombre_herramienta", "arguments": "{...parametros_json}"}}',
+      'NO incluyas texto adicional cuando invoques una herramienta.',
+      'Schema de herramientas:',
+      toolSchemas,
+      '=== FIN HERRAMIENTAS ===',
+    ].join('\n');
   }
 
   /**
@@ -82,27 +117,76 @@ export abstract class Agent {
   }
 
   /**
+   * Detects if the LLM response is a tool call.
+   */
+  private parseToolCall(response: string): { name: string; arguments: string } | null {
+    try {
+      const parsed = JSON.parse(response);
+      if (parsed.tool_call && typeof parsed.tool_call.name === 'string') {
+        return {
+          name: parsed.tool_call.name,
+          arguments: typeof parsed.tool_call.arguments === 'string'
+            ? parsed.tool_call.arguments
+            : JSON.stringify(parsed.tool_call.arguments ?? {}),
+        };
+      }
+    } catch {
+      // Not a JSON response, not a tool call
+    }
+    return null;
+  }
+
+  /**
    * Método de ejecución libre (salida en texto).
+   * Soporta tool calling: si el LLM responde con un tool_call, lo ejecuta y continúa.
    * Las skills indicadas se activan solo para esta petición.
    */
   public async execute(userInput: string, options: ExecuteOptions = {}): Promise<string> {
     this.validateInput(userInput);
     try {
       const sanitized = sanitizeUserInput(userInput);
+      const context: ToolContext = {
+        agentName: this.name,
+        userInput,
+        history: this.chatHistory,
+      };
 
-      // Construir mensajes ANTES de mutar el historial
+      // Build messages without mutating history yet
       const messages = [...this.chatHistory, { role: 'user' as const, content: sanitized }];
+      let builtMessages = this.buildMessagesFrom(messages, options.skills);
 
-      const response = await this.provider.generateCompletion(
-        this.buildMessagesFrom(messages, options.skills),
-      );
+      // Tool loop: keep executing until we get a text response or max rounds
+      for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+        const response = await this.provider.generateCompletion(builtMessages);
+        const toolCall = this.parseToolCall(response);
 
-      // Mutar historial SOLO después de éxito del provider
+        if (!toolCall) {
+          // Final text response — mutate history
+          this.chatHistory.push({ role: 'user', content: sanitized });
+          this.chatHistory.push({ role: 'assistant', content: response });
+          this.evictIfNeeded();
+          return response;
+        }
+
+        // Execute the tool
+        const result: ToolCallResult = await executeToolCall(toolCall, this.toolRegistry, context);
+
+        // Add tool result to messages for next round
+        builtMessages.push(
+          { role: 'assistant', content: response },
+          {
+            role: 'user',
+            content: `Tool "${toolCall.name}" result:\n${result.success ? result.result : `ERROR: ${result.error}`}\n\nAhora responde al usuario con el resultado de la herramienta.`,
+          },
+        );
+      }
+
+      // Max rounds exhausted — get final response
+      const finalResponse = await this.provider.generateCompletion(builtMessages);
       this.chatHistory.push({ role: 'user', content: sanitized });
-      this.chatHistory.push({ role: 'assistant', content: response });
+      this.chatHistory.push({ role: 'assistant', content: finalResponse });
       this.evictIfNeeded();
-
-      return response;
+      return finalResponse;
     } catch (error) {
       console.error(`[Agent ${this.name} Error]:`, error);
       throw error;
@@ -155,7 +239,42 @@ export abstract class Agent {
   }
 
   public clearMemory(): void {
-    this.chatHistory = [{ role: 'system', content: this.systemPrompt }];
+    this.chatHistory = [{ role: 'system', content: this.buildSystemPromptWithTools() }];
+  }
+
+  /**
+   * Returns a copy of the current conversation history.
+   */
+  public getHistory(): ChatMessage[] {
+    return this.chatHistory.map((m) => ({ ...m }));
+  }
+
+  /**
+   * Loads a conversation history, replacing the current one.
+   * The system prompt is always preserved from the agent's configuration.
+   */
+  public loadHistory(history: ChatMessage[]): void {
+    const systemMsg = this.chatHistory.find((m) => m.role === 'system');
+    const nonSystem = history.filter((m) => m.role !== 'system');
+    this.chatHistory = systemMsg ? [systemMsg, ...nonSystem] : [...nonSystem];
+  }
+
+  /**
+   * Exports the conversation history as a serializable object.
+   */
+  exportSession(): { agentName: string; history: ChatMessage[]; createdAt: string } {
+    return {
+      agentName: this.name,
+      history: this.getHistory(),
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Loads a previously exported session.
+   */
+  loadSession(session: { history: ChatMessage[] }): void {
+    this.loadHistory(session.history);
   }
 
   /**
