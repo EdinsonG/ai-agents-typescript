@@ -15,6 +15,7 @@ export {
   FrontendReactAgent,
 } from '@/agents/FrontendReact/FrontendReactAgent.js';
 export { AGENT_IDS, type AgentId, createAgent } from '@/agents/index.js';
+export { DEFAULT_QA_SKILLS, QAExpertAgent } from '@/agents/QAExpert/QAExpertAgent.js';
 export { TechnicalPOAgent } from '@/agents/TechnicalPO/TechnicalPOAgent.js';
 export { DEFAULT_UXUI_SKILLS, UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
 // ── Core ──────────────────────────────────────────────────────────────

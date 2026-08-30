@@ -1,11 +1,12 @@
 import { BackendNodeAgent } from './BackendNode/BackendNodeAgent.js';
 import { FrontendReactAgent } from './FrontendReact/FrontendReactAgent.js';
+import { QAExpertAgent } from './QAExpert/QAExpertAgent.js';
 import { TechnicalPOAgent } from './TechnicalPO/TechnicalPOAgent.js';
 import { UXUIAgent } from './UXUI/UXUIAgent.js';
 
-export { BackendNodeAgent, FrontendReactAgent, TechnicalPOAgent, UXUIAgent };
+export { BackendNodeAgent, FrontendReactAgent, QAExpertAgent, TechnicalPOAgent, UXUIAgent };
 
-export const AGENT_IDS = ['po', 'react', 'backend', 'uxui'] as const;
+export const AGENT_IDS = ['po', 'react', 'backend', 'uxui', 'qa'] as const;
 export type AgentId = (typeof AGENT_IDS)[number];
 
 export function createAgent(id: AgentId, apiKey: string) {
@@ -18,5 +19,7 @@ export function createAgent(id: AgentId, apiKey: string) {
       return new BackendNodeAgent(apiKey);
     case 'uxui':
       return new UXUIAgent(apiKey);
+    case 'qa':
+      return new QAExpertAgent(apiKey);
   }
 }

@@ -4,6 +4,7 @@ import {
   BackendNodeAgent,
   createAgent,
   FrontendReactAgent,
+  QAExpertAgent,
   TechnicalPOAgent,
   UXUIAgent,
 } from '@/agents/index.js';
@@ -33,6 +34,12 @@ const CASES = [
     factory: (provider: any) => new UXUIAgent('key', 'model', provider),
     method: 'designSolution' as const,
     promptKeyword: 'WCAG',
+  },
+  {
+    name: 'QAExpertAgent',
+    factory: (provider: any) => new QAExpertAgent('key', 'model', provider),
+    method: 'createTestPlan' as const,
+    promptKeyword: 'QA',
   },
 ];
 
@@ -84,9 +91,10 @@ describe('createAgent', () => {
     expect(createAgent('react', 'key')).toBeInstanceOf(FrontendReactAgent);
     expect(createAgent('backend', 'key')).toBeInstanceOf(BackendNodeAgent);
     expect(createAgent('uxui', 'key')).toBeInstanceOf(UXUIAgent);
+    expect(createAgent('qa', 'key')).toBeInstanceOf(QAExpertAgent);
   });
 
   it('expone ids estables de agentes', () => {
-    expect(AGENT_IDS).toEqual(['po', 'react', 'backend', 'uxui']);
+    expect(AGENT_IDS).toEqual(['po', 'react', 'backend', 'uxui', 'qa']);
   });
 });

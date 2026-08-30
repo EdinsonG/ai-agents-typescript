@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BackendNodeAgent } from '@/agents/BackendNode/BackendNodeAgent.js';
+import { QAExpertAgent } from '@/agents/QAExpert/QAExpertAgent.js';
 import { UXUIAgent } from '@/agents/UXUI/UXUIAgent.js';
 import type { LLMProvider } from '@/core/LLMProvider.js';
 import { mergeSkillOptions } from '@/core/SkillRegistry.js';
@@ -20,6 +21,13 @@ const AGENTS = [
     defaults: ['wcag-forms', 'design-tokens-states'],
     freeMethod: 'designSolution' as const,
     input: 'checkout en 3 pasos',
+  },
+  {
+    name: 'QAExpertAgent',
+    make: (provider: LLMProvider) => new QAExpertAgent('key', 'mock', provider),
+    defaults: ['testing-strategies', 'owasp-testing-guide', 'api-contract-testing'],
+    freeMethod: 'createTestPlan' as const,
+    input: 'API de pagos con Stripe',
   },
 ] as const;
 
