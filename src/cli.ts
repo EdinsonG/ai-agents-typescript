@@ -36,6 +36,11 @@ y reintentos.
 Rediseño del checkout de un e-commerce: actualmente 5 pasos y el 60%
 abandona el carrito; buscamos reducir fricción y abandono.
 
+## qa
+Módulo de checkout con pago con tarjeta: carrito, datos de envío,
+pasarela de pago segura y confirmación por email.
+Necesito un plan de testing completo que cubra unit, integration y E2E.
+
 ## pipeline
 Módulo de checkout con pago con tarjeta: carrito, datos de envío,
 pasarela de pago segura y confirmación por email.

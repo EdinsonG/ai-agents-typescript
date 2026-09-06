@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { AGENT_IDS, type AgentId, createAgent } from '@/agents/index.js';
 import { BACKEND_NODE_CASES } from '@/evals/golden/backendNodeCases.js';
 import { FRONTEND_REACT_CASES } from '@/evals/golden/frontendReactCases.js';
+import { QA_EXPERT_CASES } from '@/evals/golden/qaExpertCases.js';
 import { TECHNICAL_PO_CASES } from '@/evals/golden/technicalPoCases.js';
 import { UXUI_CASES } from '@/evals/golden/uxuiCases.js';
 import { LLMJudge } from '@/evals/judge.js';
@@ -23,6 +24,7 @@ const SUITES: SuiteDefinition[] = [
   { name: 'Frontend React Expert', agentId: 'react', cases: FRONTEND_REACT_CASES },
   { name: 'Backend Node Expert', agentId: 'backend', cases: BACKEND_NODE_CASES },
   { name: 'UX/UI Design Expert', agentId: 'uxui', cases: UXUI_CASES },
+  { name: 'QA Expert', agentId: 'qa', cases: QA_EXPERT_CASES },
 ];
 
 interface ParsedArgs {
